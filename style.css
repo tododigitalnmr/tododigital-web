@@ -192,8 +192,8 @@ html, body {
     height: 550px; /* Massive size for maximum impact */
     width: auto;
     object-fit: contain;
-    /* Clean crop: ensures the "cut line" is perfectly positioned to hide text */
-    clip-path: inset(0 0 38% 0); 
+    /* Surgical crop: deeper inset to ensure 100% of the text is hidden */
+    clip-path: inset(0 0 41% 0); 
     filter: drop-shadow(0 0 50px var(--accent-glow));
     margin-bottom: -220px; 
     position: relative;
@@ -237,7 +237,8 @@ html, body {
     .hero-logo {
         height: 180px; /* Desktop was 550px */
         margin-bottom: -50px;
-        clip-path: inset(0 0 35% 0);
+        /* Surgical crop for mobile */
+        clip-path: inset(0 0 38% 0);
     }
 
     .hero h1 {
