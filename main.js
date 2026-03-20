@@ -139,12 +139,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6. HAMBURGER MENU
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
+    const closeBtn = document.querySelector('.close-menu');
+
     if (hamburger) {
         hamburger.addEventListener('click', () => {
             hamburger.classList.toggle('active');
             navLinks.classList.toggle('active');
         });
     }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            hamburger.classList.remove('active');
+            navLinks.classList.remove('active');
+        });
+    }
+
+    // Close menu when clicking a link
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', () => {
+            hamburger.classList.remove('active');
+            navLinks.classList.remove('active');
+        });
+    });
 
     // 7. ANIMATED COUNTERS
     const counters = document.querySelectorAll('.stat-number');

@@ -166,12 +166,11 @@ html, body {
 
     .nav-links {
         position: fixed;
-        right: -110%;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%) scale(0.9);
         flex-direction: column;
-        background: rgba(2, 4, 10, 0.98); /* Solid dark background */
+        background: #02040a; /* Pure black for maximum contrast */
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         width: 85%;
@@ -181,19 +180,30 @@ html, body {
         border-radius: 40px;
         justify-content: center;
         align-items: center;
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        padding: 60px 20px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        padding: 70px 20px 40px;
         border: 1px solid var(--accent-blue);
         z-index: 1001;
         opacity: 0;
         visibility: hidden;
+        pointer-events: none;
     }
 
     .nav-links.active {
-        right: auto;
         opacity: 1;
         visibility: visible;
         transform: translate(-50%, -50%) scale(1);
+        pointer-events: auto;
+    }
+
+    .close-menu {
+        position: absolute;
+        top: 25px;
+        right: 30px;
+        font-size: 2.5rem;
+        color: var(--accent-blue);
+        cursor: pointer;
+        line-height: 1;
     }
 
     .nav-links li {
