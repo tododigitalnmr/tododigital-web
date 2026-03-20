@@ -1,9 +1,105 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Scroll Reveal Animation
-    const observerOptions = {
-        threshold: 0.1
-    };
+    // 1. CUSTOM CURSOR LOGIC
+    const cursor = document.querySelector('.cursor');
+    let mouseX = 0, mouseY = 0;
+    let cursorX = 0, cursorY = 0;
 
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    });
+
+    function animateCursor() {
+        // Smooth interpolation (lerp)
+        const lerp = 0.15;
+        cursorX += (mouseX - cursorX) * lerp;
+        cursorY += (mouseY - cursorY) * lerp;
+
+        cursor.style.left = `${cursorX}px`;
+        cursor.style.top = `${cursorY}px`;
+
+        requestAnimationFrame(animateCursor);
+    }
+    animateCursor();
+
+    // Cursor interactivity
+    const interactiveElements = document.querySelectorAll('a, button, .service-card, .portfolio-item');
+    interactiveElements.forEach(el => {
+        el.addEventListener('mouseenter', () => cursor.classList.add('active'));
+        el.addEventListener('mouseleave', () => cursor.classList.remove('active'));
+    });
+
+    // 2. PARTICLES ENGINE (Lightweight Canvas)
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const particlesContainer = document.getElementById('particles-js');
+    if (particlesContainer) {
+        particlesContainer.appendChild(canvas);
+        let particles = [];
+        
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 1 - 0.5;
+                this.speedY = Math.random() * 1 - 0.5;
+                this.opacity = Math.random() * 0.5;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.x > canvas.width) this.x = 0;
+                if (this.x < 0) this.x = canvas.width;
+                if (this.y > canvas.height) this.y = 0;
+                if (this.y < 0) this.y = canvas.height;
+
+                // Move slightly towards mouse
+                const dx = mouseX - this.x;
+                const dy = mouseY - this.y;
+                const distance = Math.sqrt(dx*dx + dy*dy);
+                if (distance < 200) {
+                    this.x += dx * 0.01;
+                    this.y += dy * 0.01;
+                }
+            }
+            draw() {
+                ctx.fillStyle = `rgba(0, 210, 255, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < 80; i++) {
+                particles.push(new Particle());
+            }
+        }
+        initParticles();
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+    }
+
+    // 3. SCROLL REVEAL (Updated with Advanced Transitions)
+    const observerOptions = { threshold: 0.1 };
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -12,98 +108,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, observerOptions);
 
-    const scrollElements = document.querySelectorAll('.animate-on-scroll');
-    scrollElements.forEach(el => observer.observe(el));
+    document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
 
-    // Smooth Scrolling for Nav Links
+    // 4. SMOOTH SCROLLING
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
-            document.querySelector(this.getAttribute('href')).scrollIntoView({
-                behavior: 'smooth'
-            });
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
         });
     });
 
-    // Mouse Following Glow
-    const glow = document.querySelector('.glow-bg');
-    window.addEventListener('mousemove', (e) => {
-        const x = e.clientX;
-        const y = e.clientY;
-        glow.style.left = `${x}px`;
-        glow.style.top = `${y}px`;
-    });
-
-    // Typing Effect
-    const typingText = document.querySelector('.hero p');
-    if (typingText) {
-        const text = "Diseño web, marketing y branding de alto impacto para tu negocio.";
-        typingText.textContent = '';
-        let i = 0;
-
-        function typeWriter() {
-            if (i < text.length) {
-                typingText.textContent += text.charAt(i);
-                i++;
-                setTimeout(typeWriter, 50);
-            }
-        }
-        
-        // Start typing after initial load
-        setTimeout(typeWriter, 1000);
-    }
-
-    // 3D TILT EFFECT
+    // 5. 3D TILT EFFECT (Optimized)
     document.querySelectorAll('.service-card').forEach(card => {
         card.addEventListener('mousemove', (e) => {
             const rect = card.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-            
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            
-            const rotateX = (y - centerY) / 10;
-            const rotateY = (centerX - x) / 10;
-            
+            const rotateX = (y - rect.height/2) / 15;
+            const rotateY = (rect.width/2 - x) / 15;
             card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
         });
-        
         card.addEventListener('mouseleave', () => {
             card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)`;
         });
     });
 
-    // ANIMATED COUNTERS
-    const counters = document.querySelectorAll('.stat-number');
-    const countOptions = { threshold: 0.5 };
-    
-    const countObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const target = +entry.target.getAttribute('data-target');
-                const count = () => {
-                    const current = +entry.target.innerText;
-                    const increment = target / 100;
-                    if (current < target) {
-                        entry.target.innerText = Math.ceil(current + increment);
-                        setTimeout(count, 20);
-                    } else {
-                        entry.target.innerText = target;
-                    }
-                };
-                count();
-                countObserver.unobserve(entry.target);
-            }
-        });
-    }, countOptions);
-
-    counters.forEach(c => countObserver.observe(c));
-
-    // HAMBURGER MENU
+    // 6. HAMBURGER MENU
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
-
     if (hamburger) {
         hamburger.addEventListener('click', () => {
             hamburger.classList.toggle('active');
@@ -111,23 +146,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Close menu when clicking a link
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', () => {
-            hamburger.classList.remove('active');
-            navLinks.classList.remove('active');
-        });
-    });
+    // 7. TYPING EFFECT
+    const typingText = document.querySelector('.hero p');
+    if (typingText) {
+        const text = "Diseño web, marketing y branding de alto impacto para tu negocio.";
+        typingText.textContent = '';
+        let i = 0;
+        function typeWriter() {
+            if (i < text.length) {
+                typingText.textContent += text.charAt(i);
+                i++;
+                setTimeout(typeWriter, 50);
+            }
+        }
+        setTimeout(typeWriter, 1200);
+    }
 
-    // Navbar scroll effect
+    // 8. NAVBAR SCROLL
     window.addEventListener('scroll', () => {
         const navbar = document.querySelector('.navbar');
-        if (window.scrollY > 50) {
-            navbar.style.padding = '10px 0';
-            navbar.style.background = 'rgba(2, 4, 10, 0.8)';
+        if (window.scrollY > 100) {
+            navbar.style.background = 'rgba(2, 4, 10, 0.9)';
+            navbar.style.padding = '8px 30px';
         } else {
-            navbar.style.padding = '20px 0';
-            navbar.style.background = 'rgba(2, 4, 10, 0.5)';
+            navbar.style.background = 'rgba(2, 4, 10, 0.6)';
+            navbar.style.padding = '12px 30px';
         }
     });
 });
