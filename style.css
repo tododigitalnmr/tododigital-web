@@ -63,9 +63,9 @@ html, body {
 }
 
 #particles-js {
-    position: absolute;
+    position: fixed;
     width: 100%;
-    height: 100%;
+    height: 100vh;
     top: 0;
     left: 0;
     z-index: 0;
@@ -195,14 +195,13 @@ html, body {
     }
 
     /* Hamburger Animation */
-    .hamburger.active span:nth-child(1) {
-        transform: translateY(7px) rotate(45deg);
-    }
-    .hamburger.active span:nth-child(2) {
-        opacity: 0;
-    }
     .hamburger.active span:nth-child(3) {
         transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Hide custom cursor on mobile */
+    .cursor {
+        display: none !important;
     }
 }
 

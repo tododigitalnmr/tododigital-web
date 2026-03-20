@@ -146,7 +146,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 7. TYPING EFFECT
+    // 7. ANIMATED COUNTERS
+    const counters = document.querySelectorAll('.stat-number');
+    const countOptions = { threshold: 0.5 };
+    const countObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = +entry.target.getAttribute('data-target');
+                const updateCount = () => {
+                    const current = +entry.target.innerText;
+                    const increment = target / 100;
+                    if (current < target) {
+                        entry.target.innerText = Math.ceil(current + increment);
+                        setTimeout(updateCount, 20);
+                    } else {
+                        entry.target.innerText = target;
+                    }
+                };
+                updateCount();
+                countObserver.unobserve(entry.target);
+            }
+        });
+    }, countOptions);
+    counters.forEach(c => countObserver.observe(c));
+
+    // 8. TYPING EFFECT
     const typingText = document.querySelector('.hero p');
     if (typingText) {
         const text = "Diseño web, marketing y branding de alto impacto para tu negocio.";
