@@ -1,0 +1,16 @@
+{
+  "name": "TodoDigital NMR - Agencia Digital",
+  "short_name": "TodoDigital",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#02040a",
+  "theme_color": "#00d2ff",
+  "description": "Agencia de Desarrollo Web, Marketing y Branding Premium.",
+  "icons": [
+    {
+      "src": "web_ui_mockup_agency_1773973394402.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
