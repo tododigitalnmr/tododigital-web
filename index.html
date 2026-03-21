@@ -24,6 +24,14 @@
         <li><a href="#services">Servicios</a></li>
         <li><a href="#portfolio">Portafolio</a></li>
         <li><a href="#contact">Contacto</a></li>
+        <li style="margin-top: 20px; list-style: none; padding: 0 20px;">
+            <button id="share-website" class="nav-cta" style="background:var(--accent-blue); color:#000; border:none; padding:12px; border-radius:30px; cursor:pointer; font-weight:bold; width: 100%; font-family: 'Montserrat', sans-serif; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 10px;">
+                Compartir Web
+            </button>
+            <button id="view-card" class="nav-cta" style="background:rgba(255,255,255,0.1); color:#fff; border:1px solid var(--glass-border); padding:12px; border-radius:30px; cursor:pointer; font-weight:bold; width: 100%; font-family: 'Montserrat', sans-serif; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; backdrop-filter: blur(10px);">
+                Tarjeta Digital
+            </button>
+        </li>
         <li class="mobile-socials">
             <a href="https://wa.me/528991346198" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone-call"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/><path d="M14.05 2a9 9 0 0 1 8 7.94"/><path d="M14.05 6A5 5 0 0 1 18 10"/></svg></a>
             <a href="https://www.facebook.com/profile.php?id=61562942491577" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-facebook"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
@@ -209,6 +217,37 @@
     </div>
     <div class="chat-trigger">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-code"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="m10 10-2 2 2 2"/><path d="m14 10 2 2-2 2"/></svg>
+    </div>
+
+    <!-- DIGITAL CARD MODAL -->
+    <div id="card-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="card-container">
+                <div class="business-card" id="business-card">
+                    <!-- Front -->
+                    <div class="card-front">
+                        <div class="card-logo">Todo<span>Digital</span> NMR</div>
+                        <div class="card-info">
+                            <h3>Natanael M.R.</h3>
+                            <p>Director Creativo & Tech Lead</p>
+                        </div>
+                    </div>
+                    <!-- Back -->
+                    <div class="card-back">
+                        <div class="card-qr">
+                            <!-- Simulating QR with a placeholder or icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-qr-code"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h1"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v.01"/></svg>
+                        </div>
+                        <div class="card-links">
+                            <p>www.tododigitalnmr.com</p>
+                            <p>wa.me/528991346198</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="card-hint">Toca la tarjeta para girarla</p>
+        </div>
     </div>
 
     <script src="main.js"></script>

@@ -369,12 +369,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 userState = 'asking_name';
             }, 800);
         }
+    };
+
     const shareBtn = document.getElementById('share-website');
     if (shareBtn) {
         shareBtn.addEventListener('click', () => {
             const shareData = {
                 title: 'TodoDigital NMR',
-                text: 'Hola, te comparto el nuevo portal de TodoDigital NMR. 🚀💎 Estamos redefiniendo la presencia digital con tecnología Liquid Glass y asistentes de IA. Échale un vistazo!',
+                text: 'hola te comparto el nuevo portal de TodoDigital NMR',
                 url: window.location.href
             };
             
@@ -390,6 +392,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.removeChild(dummy);
                 alert('¡Mensaje elegante copiado al portapapeles para WhatsApp!');
             }
+            const viewCardBtn = document.getElementById('view-card');
+    const cardModal = document.getElementById('card-modal');
+    const closeModal = document.querySelector('.close-modal');
+    const businessCard = document.getElementById('business-card');
+
+    if (viewCardBtn) {
+        viewCardBtn.addEventListener('click', () => {
+            cardModal.classList.add('active');
         });
+    }
+
+    if (closeModal) {
+        closeModal.addEventListener('click', () => {
+            cardModal.classList.remove('active');
+        });
+    }
+
+    if (businessCard) {
+        businessCard.addEventListener('click', () => {
+            businessCard.classList.toggle('flipped');
+        });
+    }
+
+    // Close modal on outside click
+    window.addEventListener('click', (e) => {
+        if (e.target === cardModal) {
+            cardModal.classList.remove('active');
+        }
+    });
+});
     }
 });
