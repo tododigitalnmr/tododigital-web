@@ -369,5 +369,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 userState = 'asking_name';
             }, 800);
         }
-    };
+    const shareBtn = document.getElementById('share-website');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', () => {
+            const shareData = {
+                title: 'TodoDigital NMR',
+                text: 'Hola, te comparto el nuevo portal de TodoDigital NMR. 🚀💎 Estamos redefiniendo la presencia digital con tecnología Liquid Glass y asistentes de IA. Échale un vistazo!',
+                url: window.location.href
+            };
+            
+            if (navigator.share) {
+                navigator.share(shareData).catch(err => console.log('Error sharing', err));
+            } else {
+                // Fallback: Copy to clipboard
+                const dummy = document.createElement('input');
+                document.body.appendChild(dummy);
+                dummy.value = `${shareData.text} ${shareData.url}`;
+                dummy.select();
+                document.execCommand('copy');
+                document.body.removeChild(dummy);
+                alert('¡Mensaje elegante copiado al portapapeles para WhatsApp!');
+            }
+        });
+    }
 });
