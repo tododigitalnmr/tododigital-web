@@ -178,6 +178,30 @@
         </div>
     </footer>
 
+    <!-- AI CHAT WIDGET -->
+    <div class="chat-widget">
+        <div class="chat-header">
+            <div class="bot-info">
+                <div class="bot-status"></div>
+                <span>Asistente IA</span>
+            </div>
+            <div class="chat-close">&times;</div>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <!-- Messages will be injected here -->
+        </div>
+        <div class="chat-input-area">
+            <div class="chat-options">
+                <button onclick="startChat('servicios')">Servicios</button>
+                <button onclick="startChat('precio')">Cotizar</button>
+                <button onclick="startChat('whatsapp')">Hablar con humano</button>
+            </div>
+        </div>
+    </div>
+    <div class="chat-trigger">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-code"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="m10 10-2 2 2 2"/><path d="m14 10 2 2-2 2"/></svg>
+    </div>
+
     <script src="main.js"></script>
 </body>
 </html>

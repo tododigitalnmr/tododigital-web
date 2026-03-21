@@ -213,5 +213,60 @@ document.addEventListener('DOMContentLoaded', () => {
             navbar.style.background = 'rgba(2, 4, 10, 0.6)';
             navbar.style.padding = '12px 30px';
         }
-    });
+    // 9. AI CHAT WIDGET LOGIC
+    const chatTrigger = document.querySelector('.chat-trigger');
+    const chatWidget = document.querySelector('.chat-widget');
+    const chatClose = document.querySelector('.chat-close');
+    const chatMessages = document.getElementById('chat-messages');
+
+    if (chatTrigger) {
+        chatTrigger.addEventListener('click', () => {
+            chatWidget.classList.add('active');
+            if (chatMessages.children.length === 0) {
+                botMessage('¡Hola! 👋 Soy el asistente IA de TodoDigital NMR. ¿En qué puedo ayudarte hoy?');
+            }
+        });
+    }
+
+    if (chatClose) {
+        chatClose.addEventListener('click', () => {
+            chatWidget.classList.remove('active');
+        });
+    }
+
+    function botMessage(text) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message bot-message';
+        msgDiv.innerHTML = text;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function userMessage(text) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message user-message';
+        msgDiv.innerHTML = text;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    window.startChat = (type) => {
+        if (type === 'servicios') {
+            userMessage('Quiero saber sobre sus servicios');
+            setTimeout(() => {
+                botMessage('Ofrecemos diseño Web & Apps, Marketing Digital, Branding y Asistentes de IA. ¿Te gustaría ver nuestro portafolio?');
+            }, 800);
+        } else if (type === 'precio') {
+            userMessage('Me gustaría cotizar un proyecto');
+            setTimeout(() => {
+                botMessage('¡Excelente! Para darte un presupuesto exacto necesito conocer un poco más de tu idea. ¿Hablamos por WhatsApp?');
+                setTimeout(() => {
+                    botMessage('<a href="https://wa.me/528991346198" target="_blank" style="color:var(--accent-blue); font-weight:bold;">👉 Click aquí para iniciar chat</a>');
+                }, 1000);
+            }, 800);
+        } else if (type === 'whatsapp') {
+            userMessage('Hablar con un humano');
+            window.open('https://wa.me/528991346198', '_blank');
+        }
+    };
 });
