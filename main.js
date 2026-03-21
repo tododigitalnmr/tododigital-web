@@ -104,17 +104,105 @@ document.addEventListener('DOMContentLoaded', () => {
         animateParticles();
     }
 
-    // 3. SCROLL REVEAL (Updated with Advanced Transitions)
-    const observerOptions = { threshold: 0.1 };
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('active');
+    // 3. GSAP ADVANCED ANIMATIONS
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Generic Scroll Reveal (Replaces IntersectionObserver)
+    const revealElements = document.querySelectorAll('.animate-on-scroll:not(.service-card)');
+    revealElements.forEach((el) => {
+        gsap.to(el, {
+            scrollTrigger: {
+                trigger: el,
+                start: "top 85%",
+                toggleActions: "play none none reverse"
+            },
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            filter: "blur(0px)",
+            duration: 0.8,
+            ease: "power3.out"
+        });
+    });
+
+    // Hero Parallax Effect
+    gsap.to(".hero-logo", {
+        scrollTrigger: {
+            trigger: ".hero",
+            start: "top top",
+            end: "bottom top",
+            scrub: true
+        },
+        y: 150,
+        scale: 1.1,
+        opacity: 0
+    });
+    
+    gsap.to(".hero h1, .hero p, .hero-btns", {
+        scrollTrigger: {
+            trigger: ".hero",
+            start: "top top",
+            end: "center top",
+            scrub: true
+        },
+        y: -100,
+        opacity: 0
+    });
+
+    // Services Pinning (The Apple Effect)
+    const servicesSection = document.querySelector('.services');
+    if (servicesSection) {
+        const cards = gsap.utils.toArray('.service-card');
+        
+        // Initial state for pinned cards
+        gsap.set(cards, { opacity: 0, y: 150, scale: 0.9, filter: "blur(10px)" });
+
+        const tl = gsap.timeline({
+            scrollTrigger: {
+                trigger: servicesSection,
+                start: "center center",
+                end: "+=1200", // Wait 1200px of scrolling before unpinning
+                pin: true,
+                scrub: 1, // 1 second smoothing
             }
         });
-    }, observerOptions);
 
-    document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+        tl.to(cards, {
+            y: 0,
+            scale: 1,
+            opacity: 1,
+            filter: "blur(0px)",
+            stagger: 0.3,
+            ease: "power2.out"
+        });
+    }
+
+    // Marquee Dynamic Velocity
+    const marqueeContent = document.querySelector('.marquee-content');
+    if (marqueeContent) {
+        marqueeContent.style.animation = 'none'; // Disable vanilla CSS animation
+        
+        const marqueeAnimation = gsap.to(marqueeContent, {
+            xPercent: -50,
+            repeat: -1,
+            duration: 20,
+            ease: "linear"
+        });
+
+        ScrollTrigger.create({
+            start: 0,
+            end: "max",
+            onUpdate: (self) => {
+                const velocity = Math.abs(self.getVelocity() / 300); // Normalize velocity
+                let timeScale = 1 + velocity;
+                timeScale = Math.min(timeScale, 8); // Cap max speed
+                
+                // Smoothly speed up, then return to normal
+                gsap.to(marqueeAnimation, { timeScale: timeScale, duration: 0.3, overwrite: true });
+                gsap.to(marqueeAnimation, { timeScale: 1, duration: 1.5, delay: 0.3, overwrite: "auto" });
+            }
+        });
+    }
 
     // 4. SMOOTH SCROLLING
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
