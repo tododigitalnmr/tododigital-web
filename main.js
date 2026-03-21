@@ -203,6 +203,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Footer Title Split Animation (Apple-like side reveal)
+    const footerTitle = document.querySelector('.footer-title');
+    if (footerTitle) {
+        // Izquierda entra de la izquierda
+        gsap.fromTo('.left-word', 
+            { x: -150, opacity: 0 },
+            { 
+                scrollTrigger: {
+                    trigger: '.footer',
+                    start: "top 85%",
+                    toggleActions: "play none none reverse"
+                },
+                x: 0, 
+                opacity: 1, 
+                duration: 1, 
+                ease: "power3.out" 
+            }
+        );
+        // Derecha entra de la derecha
+        gsap.fromTo('.right-word', 
+            { x: 150, opacity: 0 },
+            { 
+                scrollTrigger: {
+                    trigger: '.footer',
+                    start: "top 85%",
+                    toggleActions: "play none none reverse"
+                },
+                x: 0, 
+                opacity: 1, 
+                duration: 1, 
+                ease: "power3.out" 
+            }
+        );
+    }
+
     // 4. SMOOTH SCROLLING
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
