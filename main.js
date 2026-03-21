@@ -222,6 +222,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 7. BULLETPROOF SCROLL RESTORATION
+    // Desactiva la restauración nativa confusa del navegador
+    if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+    }
+
+    // Guarda exactamente en qué pixel estábamos al dar clic en un servicio
+    document.querySelectorAll('.service-card').forEach(card => {
+        card.addEventListener('click', () => {
+            sessionStorage.setItem('exactScrollPosition', window.scrollY);
+        });
+    });
+
+    // Cuando regresamos a la página, forza al navegador a ir a ese pixel
+    window.addEventListener('pageshow', () => {
+        const savedPosition = sessionStorage.getItem('exactScrollPosition');
+        if (savedPosition !== null) {
+            sessionStorage.removeItem('exactScrollPosition');
+            // Un micro-retraso para asegurar que el DOM cargó
+            setTimeout(() => {
+                window.scrollTo({
+                    top: parseInt(savedPosition, 10),
+                    behavior: 'instant'
+                });
+            }, 50);
+        }
+    });
+
     // Close menu when clicking a link
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.addEventListener('click', () => {
