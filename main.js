@@ -240,63 +240,117 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function botMessage(text) {
+    function botMessage(text, card = null) {
+        const msgContainer = document.createElement('div');
+        msgContainer.className = 'bot-msg-group';
+        msgContainer.style.display = 'flex';
+        msgContainer.style.flexDirection = 'column';
+        msgContainer.style.gap = '5px';
+        
         const msgDiv = document.createElement('div');
         msgDiv.className = 'message bot-message';
         msgDiv.innerHTML = text;
-        chatMessages.appendChild(msgDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+        msgContainer.appendChild(msgDiv);
 
-    function userMessage(text) {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'message user-message';
-        msgDiv.innerHTML = text;
-        chatMessages.appendChild(msgDiv);
+        if (card) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'chat-card';
+            cardDiv.innerHTML = `
+                <img src="${card.image}" alt="${card.title}">
+                <h4>${card.title}</h4>
+                <p>${card.desc}</p>
+                <button onclick="window.location.href='${card.link}'" class="chat-card-btn">Ver más</button>
+            `;
+            msgContainer.appendChild(cardDiv);
+        }
+
+        chatMessages.appendChild(msgContainer);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     const processInput = () => {
-        const text = chatInput.value.trim().toLowerCase();
+        const text = chatInput.value.trim();
+        const lowerText = text.toLowerCase();
         if (!text) return;
         
-        userMessage(chatInput.value);
+        userMessage(text);
         chatInput.value = '';
 
         setTimeout(() => {
-            if (text.includes('precio') || text.includes('cuanto') || text.includes('costo')) {
-                botMessage('Nuestros precios varían según la complejidad del proyecto. ¿Te gustaría que te enviemos una cotización formal por WhatsApp?');
-            } else if (text.includes('web') || text.includes('pagina')) {
-                botMessage('Somos expertos en desarrollo web de alto impacto con Next.js y React. ¿Buscas algo similar a este sitio?');
-            } else if (text.includes('hola') || text.includes('buenos')) {
-                botMessage('¡Hola! Es un gusto saludarte. ¿En qué servicio estás interesado?');
-            } else if (text.includes('logo') || text.includes('branding')) {
-                botMessage('Creamos identidades visuales que enamoran. ¿Tienes ya un concepto o empezamos de cero?');
+            // Theme Switching "Surprise"
+            if (lowerText.includes('color') || lowerText.includes('sorpresa') || lowerText.includes('cambia')) {
+                const colors = ['#00d2ff', '#ff00d2', '#d2ff00', '#00ff88', '#ff4d4d'];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                document.documentElement.style.setProperty('--accent-blue', randomColor);
+                botMessage(`¡Zas! He cambiado el color de acento a <span style="color:${randomColor}">${randomColor}</span>. ¿Te gusta cómo se ve el sitio ahora? ✨`);
+                return;
+            }
+
+            // State Machine for Sales Funnel
+            if (userState === 'asking_name') {
+                userData.name = text;
+                userState = 'asking_business';
+                botMessage(`¡Mucho gusto, ${userData.name}! 😊 ¿Qué tipo de negocio tienes o qué proyecto tienes en mente?`);
+                return;
+            }
+
+            if (userState === 'asking_business') {
+                userData.business = text;
+                userState = 'idle';
+                const waMsg = `Hola Natanael, soy ${userData.name}. Tengo un negocio de ${userData.business} y hablé con tu asistente IA sobre un proyecto. Me gustaría definir los detalles finales.`;
+                const encodedMsg = encodeURIComponent(waMsg);
+                botMessage(`Perfecto. He recolectado tu información. Para darte el mejor servicio y definir los detalles finales, te conectaré con nuestro director creativo.`);
+                setTimeout(() => {
+                    botMessage(`<a href="https://wa.me/528991346198?text=${encodedMsg}" target="_blank" class="wa-btn-chat">🚀 Click aquí para agendar detalles</a>`);
+                }, 1000);
+                return;
+            }
+
+            // Keyword Matching with Sales Focus
+            if (lowerText.includes('precio') || lowerText.includes('cuanto') || lowerText.includes('costo')) {
+                botMessage('Nuestros proyectos son personalizados. Por ejemplo, una web premium puede potenciar tus ventas un 200%. ¿Te gustaría que Natanael te dé un presupuesto exacto? Dime tu nombre para empezar.');
+                userState = 'asking_name';
+            } else if (lowerText.includes('web') || lowerText.includes('pagina')) {
+                botMessage('Desarrollamos sitios con tecnología Liquid Glass. Mira este ejemplo:', {
+                    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=400',
+                    title: 'Web Apps Premium',
+                    desc: 'Sitios ultra-rápidos y modernos que capturan la atención.',
+                    link: '#services'
+                });
+            } else if (lowerText.includes('branding') || lowerText.includes('logo')) {
+                botMessage('Diseñamos identidades que dejan huella. ¿Quieres ver nuestra metodología?', {
+                    image: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&q=80&w=400',
+                    title: 'Identidad Visual',
+                    desc: 'Logos y branding que transmiten autoridad y estilo.',
+                    link: 'branding-detail.html'
+                });
+            } else if (lowerText.includes('tiempo') || lowerText.includes('tarda')) {
+                botMessage('Un proyecto de alta calidad suele tomar entre 2 a 4 semanas. La velocidad y la calidad son nuestro compromiso. ¿Cuál es tu fecha límite ideal?');
+            } else if (lowerText.includes('hola') || lowerText.includes('buenos')) {
+                botMessage('¡Hola! Es un gusto saludarte. Soy el asistente de TodoDigital NMR. ¿Buscas escalar tu negocio con tecnología o diseño? Tip: ¡Pídeme un cambio de color!');
+            } else if (lowerText.includes('servicios') || lowerText.includes('hacen')) {
+                botMessage('Hacemos Web & Apps, Branding, Marketing y Automatización con IA. ¿Sobre cuál de estos quieres ver una tarjeta de detalle?');
             } else {
-                botMessage('Esa es una excelente pregunta. Para darte una respuesta detallada, prefiero que hablemos con nuestro especialista. <a href="https://wa.me/528991346198" target="_blank" style="color:var(--accent-blue);font-weight:bold;">Toca aquí para ir a WhatsApp</a>');
+                botMessage('Entiendo perfectamente. Para darte la atención personalizada que mereces, hablemos directamente. ¿Cómo te llamas?');
+                userState = 'asking_name';
             }
         }, 1000);
     };
 
-    if (chatSend) {
-        chatSend.addEventListener('click', processInput);
-    }
-    if (chatInput) {
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') processInput();
-        });
-    }
+    if (chatSend) chatSend.addEventListener('click', processInput);
+    if (chatInput) chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') processInput(); });
 
     window.startChat = (type) => {
         if (type === 'servicios') {
             userMessage('Quiero saber sobre sus servicios');
             setTimeout(() => {
-                botMessage('Ofrecemos diseño Web & Apps, Marketing Digital, Branding y Asistentes de IA. ¿Te gustaría ver nuestro portafolio?');
+                botMessage('Ofrecemos soluciones integrales: desde Web Apps hasta Asistentes de IA. ¿En qué área está tu mayor desafío actual?');
             }, 800);
         } else if (type === 'precio') {
             userMessage('Me gustaría cotizar un proyecto');
             setTimeout(() => {
-                botMessage('¡Excelente! Para darte un presupuesto exacto necesito conocer un poco más de tu idea. <a href="https://wa.me/528991346198" target="_blank" style="color:var(--accent-blue);font-weight:bold;">Hablemos por WhatsApp aquí</a>');
+                botMessage('¡Excelente elección! Para darte una propuesta que realmente aporte valor, ¿me podrías decir tu nombre?');
+                userState = 'asking_name';
             }, 800);
         }
     };
