@@ -125,29 +125,53 @@
 .chat-input-area {
     padding: 15px;
     border-top: 1px solid var(--glass-border);
+    background: rgba(0,0,0,0.2);
 }
 
 .chat-options {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    margin-bottom: 15px;
 }
 
-.chat-options button {
+.chat-input-wrapper {
+    display: flex;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 5px 5px 5px 15px;
+    border-radius: 30px;
+    border: 1px solid var(--glass-border);
+}
+
+.chat-input-wrapper input {
+    flex: 1;
     background: transparent;
-    border: 1px solid var(--accent-blue);
-    color: var(--accent-blue);
-    padding: 8px 15px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.3s;
+    border: none;
+    color: #fff;
+    font-size: 0.9rem;
+    outline: none;
 }
 
-.chat-options button:hover {
+#chat-send {
     background: var(--accent-blue);
     color: #000;
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
 }
+
+#chat-send:hover {
+    transform: scale(1.1);
+}
+
+:root {
     --bg-deep: #02040a;
     --accent-blue: #00d2ff;
     --accent-glow: rgba(0, 210, 255, 0.4);

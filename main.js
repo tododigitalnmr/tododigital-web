@@ -213,17 +213,23 @@ document.addEventListener('DOMContentLoaded', () => {
             navbar.style.background = 'rgba(2, 4, 10, 0.6)';
             navbar.style.padding = '12px 30px';
         }
+    });
+
     // 9. AI CHAT WIDGET LOGIC
     const chatTrigger = document.querySelector('.chat-trigger');
     const chatWidget = document.querySelector('.chat-widget');
     const chatClose = document.querySelector('.chat-close');
     const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
 
     if (chatTrigger) {
         chatTrigger.addEventListener('click', () => {
             chatWidget.classList.add('active');
             if (chatMessages.children.length === 0) {
-                botMessage('¡Hola! 👋 Soy el asistente IA de TodoDigital NMR. ¿En qué puedo ayudarte hoy?');
+                setTimeout(() => {
+                    botMessage('¡Hola! 👋 Soy el asistente IA de TodoDigital NMR. ¿En qué podemos ayudarte hoy?');
+                }, 500);
             }
         });
     }
@@ -250,6 +256,37 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    const processInput = () => {
+        const text = chatInput.value.trim().toLowerCase();
+        if (!text) return;
+        
+        userMessage(chatInput.value);
+        chatInput.value = '';
+
+        setTimeout(() => {
+            if (text.includes('precio') || text.includes('cuanto') || text.includes('costo')) {
+                botMessage('Nuestros precios varían según la complejidad del proyecto. ¿Te gustaría que te enviemos una cotización formal por WhatsApp?');
+            } else if (text.includes('web') || text.includes('pagina')) {
+                botMessage('Somos expertos en desarrollo web de alto impacto con Next.js y React. ¿Buscas algo similar a este sitio?');
+            } else if (text.includes('hola') || text.includes('buenos')) {
+                botMessage('¡Hola! Es un gusto saludarte. ¿En qué servicio estás interesado?');
+            } else if (text.includes('logo') || text.includes('branding')) {
+                botMessage('Creamos identidades visuales que enamoran. ¿Tienes ya un concepto o empezamos de cero?');
+            } else {
+                botMessage('Esa es una excelente pregunta. Para darte una respuesta detallada, prefiero que hablemos con nuestro especialista. <a href="https://wa.me/528991346198" target="_blank" style="color:var(--accent-blue);font-weight:bold;">Toca aquí para ir a WhatsApp</a>');
+            }
+        }, 1000);
+    };
+
+    if (chatSend) {
+        chatSend.addEventListener('click', processInput);
+    }
+    if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') processInput();
+        });
+    }
+
     window.startChat = (type) => {
         if (type === 'servicios') {
             userMessage('Quiero saber sobre sus servicios');
@@ -259,14 +296,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (type === 'precio') {
             userMessage('Me gustaría cotizar un proyecto');
             setTimeout(() => {
-                botMessage('¡Excelente! Para darte un presupuesto exacto necesito conocer un poco más de tu idea. ¿Hablamos por WhatsApp?');
-                setTimeout(() => {
-                    botMessage('<a href="https://wa.me/528991346198" target="_blank" style="color:var(--accent-blue); font-weight:bold;">👉 Click aquí para iniciar chat</a>');
-                }, 1000);
+                botMessage('¡Excelente! Para darte un presupuesto exacto necesito conocer un poco más de tu idea. <a href="https://wa.me/528991346198" target="_blank" style="color:var(--accent-blue);font-weight:bold;">Hablemos por WhatsApp aquí</a>');
             }, 800);
-        } else if (type === 'whatsapp') {
-            userMessage('Hablar con un humano');
-            window.open('https://wa.me/528991346198', '_blank');
         }
     };
 });
