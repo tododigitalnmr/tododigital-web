@@ -223,6 +223,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatInput = document.getElementById('chat-input');
     const chatSend = document.getElementById('chat-send');
 
+    let userState = 'idle';
+    let userData = { name: '', business: '', interest: '' };
+
     if (chatTrigger) {
         chatTrigger.addEventListener('click', () => {
             chatWidget.classList.add('active');
@@ -265,6 +268,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         chatMessages.appendChild(msgContainer);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function userMessage(text) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message user-message';
+        msgDiv.innerHTML = text;
+        chatMessages.appendChild(msgDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
