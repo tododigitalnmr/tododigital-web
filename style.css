@@ -772,10 +772,11 @@ html, body {
 }
 
 /* ANIMATIONS */
-/* ADVANCED REVEAL (GSAP CONTROLLED) */
+/* ADVANCED REVEAL (CSS NATIVE) */
 .animate-on-scroll {
     opacity: 0;
     transform: translateY(40px) scale(0.95);
+    transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .animate-on-scroll.active {
