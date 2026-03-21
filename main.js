@@ -345,7 +345,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     desc: 'Logos y branding que transmiten autoridad y estilo.',
                     link: 'branding-detail.html'
                 });
-            } else if (lowerText.includes('redes') || lowerText.includes('sociales') || lowerText.includes('marketing')) {
+            } else if (lowerText.includes('pos') || lowerText.includes('punto de venta') || lowerText.includes('caja registradora') || lowerText.includes('inventario')) {
+                botMessage('Nuestros sistemas de Punto de Venta (POS) tienen tecnología de vanguardia para controlar tu inventario y aumentar tus ventas. Mira esto:', {
+                    image: 'assets/pos-mockup.png',
+                    title: 'Sistemas POS',
+                    desc: 'Control total para tu negocio, restaurante o tienda.',
+                    link: 'pos-detail.html'
+                });
+            } else if (lowerText.includes('marketing') || lowerText.includes('publicidad') || lowerText.includes('redes')) {
                 botMessage('Gestionamos tus redes con contenido de alto impacto y campañas publicitarias enfocadas en ventas. ¿Buscas crecer en Instagram, Facebook o TikTok?');
             } else if (lowerText.includes('tiempo') || lowerText.includes('tarda')) {
                 botMessage('Un proyecto de alta calidad suele tomar entre 2 a 4 semanas. La velocidad y la calidad son nuestro compromiso. ¿Cuál es tu fecha límite ideal?');
