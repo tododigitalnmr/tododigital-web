@@ -79,6 +79,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+    // --- ANALYTICS TRACKING HELPER ---
+    function trackEvent(name, detail = {}) {
+        console.log(`[Event] ${name}`, detail);
+        if (typeof fbq === 'function') fbq('trackCustom', name, detail);
+        if (typeof gtag === 'function') gtag('event', name, detail);
+    }
         function initParticles() {
             particles = [];
             for (let i = 0; i < 80; i++) {
@@ -229,6 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (chatTrigger) {
         chatTrigger.addEventListener('click', () => {
             chatWidget.classList.add('active');
+            trackEvent('Chat_Opened');
             if (chatMessages.children.length === 0) {
                 setTimeout(() => {
                     botMessage('¡Hola! 👋 Soy el asistente IA de TodoDigital NMR. ¿En qué podemos ayudarte hoy?');
@@ -400,6 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (viewCardBtn) {
         viewCardBtn.addEventListener('click', () => {
             cardModal.classList.add('active');
+            trackEvent('DigitalCard_Viewed');
         });
     }
 
