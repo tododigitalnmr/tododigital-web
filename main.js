@@ -154,16 +154,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (servicesSection) {
         const cards = gsap.utils.toArray('.service-card');
         
-        // Initial state for pinned cards
-        gsap.set(cards, { opacity: 0, y: 150, scale: 0.9, filter: "blur(10px)" });
+        // Initial state (Removed blur for MAXIMUM performance and fluidity)
+        gsap.set(cards, { opacity: 0, y: 100, scale: 0.95 });
 
         const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: servicesSection,
-                start: "center center",
-                end: "+=1200", // Wait 1200px of scrolling before unpinning
+                start: "top 15%", // Ancla la sección en cuanto el título llega arriba
+                end: "+=800", // Menos scroll necesario para ver todas las tarjetas
                 pin: true,
-                scrub: 1, // 1 second smoothing
+                scrub: 0.5, // Reacción más rápida, elimina la sensación de "retraso"
             }
         });
 
@@ -171,8 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
             y: 0,
             scale: 1,
             opacity: 1,
-            filter: "blur(0px)",
-            stagger: 0.3,
+            stagger: 0.15, // Las tarjetas aparecen más rápido, una tras otra
             ease: "power2.out"
         });
     }
