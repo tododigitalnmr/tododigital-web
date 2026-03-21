@@ -317,9 +317,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Keyword Matching with Sales Focus
-            if (lowerText.includes('precio') || lowerText.includes('cuanto') || lowerText.includes('costo')) {
-                botMessage('Nuestros proyectos son personalizados. Por ejemplo, una web premium puede potenciar tus ventas un 200%. ¿Te gustaría que Natanael te dé un presupuesto exacto? Dime tu nombre para empezar.');
+            // Keyword Matching with Sales Focus & Expanded Knowledge
+            if (lowerText.includes('invitacion') || lowerText.includes('15 años') || lowerText.includes('xv')) {
+                botMessage('¡Hacemos invitaciones digitales increíbles! Son interactivas, tienen mapa, confirmación de asistencia y música. ¿Para cuándo es el evento? Dime tu nombre y te mando ejemplos.');
+                userState = 'asking_name';
+            } else if (lowerText.includes('precio') || lowerText.includes('cuanto') || lowerText.includes('costo')) {
+                botMessage('Nuestros proyectos son personalizados para maximizar tu retorno de inversión. Para darte un presupuesto exacto y justo, ¿me dices tu nombre para empezar el briefing?');
                 userState = 'asking_name';
             } else if (lowerText.includes('web') || lowerText.includes('pagina')) {
                 botMessage('Desarrollamos sitios con tecnología Liquid Glass. Mira este ejemplo:', {
@@ -335,14 +338,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     desc: 'Logos y branding que transmiten autoridad y estilo.',
                     link: 'branding-detail.html'
                 });
+            } else if (lowerText.includes('redes') || lowerText.includes('sociales') || lowerText.includes('marketing')) {
+                botMessage('Gestionamos tus redes con contenido de alto impacto y campañas publicitarias enfocadas en ventas. ¿Buscas crecer en Instagram, Facebook o TikTok?');
             } else if (lowerText.includes('tiempo') || lowerText.includes('tarda')) {
                 botMessage('Un proyecto de alta calidad suele tomar entre 2 a 4 semanas. La velocidad y la calidad son nuestro compromiso. ¿Cuál es tu fecha límite ideal?');
             } else if (lowerText.includes('hola') || lowerText.includes('buenos')) {
                 botMessage('¡Hola! Es un gusto saludarte. Soy el asistente de TodoDigital NMR. ¿Buscas escalar tu negocio con tecnología o diseño? Tip: ¡Pídeme un cambio de color!');
             } else if (lowerText.includes('servicios') || lowerText.includes('hacen')) {
-                botMessage('Hacemos Web & Apps, Branding, Marketing y Automatización con IA. ¿Sobre cuál de estos quieres ver una tarjeta de detalle?');
+                botMessage('Hacemos Web & Apps, Branding, Invitaciones Digitales, Marketing y Automatización con IA. ¿Qué área te interesa explorar hoy?');
             } else {
-                botMessage('Entiendo perfectamente. Para darte la atención personalizada que mereces, hablemos directamente. ¿Cómo te llamas?');
+                botMessage('Esa es una buena pregunta. Para darte la respuesta exacta que necesitas, hablemos directamente. ¿Cómo te llamas?');
                 userState = 'asking_name';
             }
         }, 1000);
