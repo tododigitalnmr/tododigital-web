@@ -149,31 +149,27 @@ document.addEventListener('DOMContentLoaded', () => {
         opacity: 0
     });
 
-    // Services Pinning (The Apple Effect)
+    // Services Reveal Animation (Fluid, No-pinning)
     const servicesSection = document.querySelector('.services');
     if (servicesSection) {
         const cards = gsap.utils.toArray('.service-card');
-        
-        // Initial state (Removed blur for MAXIMUM performance and fluidity)
-        gsap.set(cards, { opacity: 0, y: 100, scale: 0.95 });
 
-        const tl = gsap.timeline({
-            scrollTrigger: {
-                trigger: servicesSection,
-                start: "top 15%", // Ancla la sección en cuanto el título llega arriba
-                end: "+=800", // Menos scroll necesario para ver todas las tarjetas
-                pin: true,
-                scrub: 0.5, // Reacción más rápida, elimina la sensación de "retraso"
+        gsap.fromTo(cards, 
+            { opacity: 0, y: 100, scale: 0.95 },
+            {
+                scrollTrigger: {
+                    trigger: servicesSection,
+                    start: "top 60%", // Empieza la animación antes para que sea natural
+                    toggleActions: "play none none reverse"
+                },
+                y: 0,
+                scale: 1,
+                opacity: 1,
+                stagger: 0.1, // Súper rápido entre tarjetas
+                duration: 0.7,
+                ease: "power3.out"
             }
-        });
-
-        tl.to(cards, {
-            y: 0,
-            scale: 1,
-            opacity: 1,
-            stagger: 0.15, // Las tarjetas aparecen más rápido, una tras otra
-            ease: "power2.out"
-        });
+        );
     }
 
     // Marquee Dynamic Velocity
