@@ -1,1 +1,4 @@
-TodoDigital_Web_Premium.zip
+node_modules/
+.env
+.DS_Store
+*.log

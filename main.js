@@ -320,6 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let userState = 'idle';
     let userData = { name: '', business: '', interest: '' };
+    let conversationHistory = []; // Almacena contexto para la IA inteligente
 
     if (chatTrigger) {
         chatTrigger.addEventListener('click', () => {
@@ -375,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    const processInput = () => {
+    const processInput = async () => {
         const text = chatInput.value.trim();
         const lowerText = text.toLowerCase();
         if (!text) return;
@@ -383,77 +384,79 @@ document.addEventListener('DOMContentLoaded', () => {
         userMessage(text);
         chatInput.value = '';
 
-        setTimeout(() => {
-            // Theme Switching "Surprise"
-            if (lowerText.includes('color') || lowerText.includes('sorpresa') || lowerText.includes('cambia')) {
-                const colors = ['#00d2ff', '#ff00d2', '#d2ff00', '#00ff88', '#ff4d4d'];
-                const randomColor = colors[Math.floor(Math.random() * colors.length)];
-                document.documentElement.style.setProperty('--accent-blue', randomColor);
-                botMessage(`¡Zas! He cambiado el color de acento a <span style="color:${randomColor}">${randomColor}</span>. ¿Te gusta cómo se ve el sitio ahora? ✨`);
-                return;
-            }
+        // Easter Egg de Colores
+        if (lowerText.includes('color') || lowerText.includes('sorpresa') || lowerText.includes('cambia')) {
+            const colors = ['#00d2ff', '#ff00d2', '#d2ff00', '#00ff88', '#ff4d4d'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            document.documentElement.style.setProperty('--accent-blue', randomColor);
+            botMessage(`¡Zas! He cambiado el color de acento a <span style="color:${randomColor}">${randomColor}</span>. ¿Te gusta cómo se ve el sitio ahora? ✨`);
+            return;
+        }
 
-            // State Machine for Sales Funnel
-            if (userState === 'asking_name') {
-                userData.name = text;
-                userState = 'asking_business';
-                botMessage(`¡Mucho gusto, ${userData.name}! 😊 ¿Qué tipo de negocio tienes o qué proyecto tienes en mente?`);
-                return;
-            }
+        // Agregar mensaje de usuario al historial
+        conversationHistory.push({ role: 'user', content: text });
 
-            if (userState === 'asking_business') {
-                userData.business = text;
-                userState = 'idle';
-                const waMsg = `Hola Natanael, soy ${userData.name}. Tengo un negocio de ${userData.business} y hablé con tu asistente IA sobre un proyecto. Me gustaría definir los detalles finales.`;
-                const encodedMsg = encodeURIComponent(waMsg);
-                botMessage(`Perfecto. He recolectado tu información. Para darte el mejor servicio y definir los detalles finales, te conectaré con nuestro director creativo.`);
-                setTimeout(() => {
-                    botMessage(`<a href="https://wa.me/528991346198?text=${encodedMsg}" target="_blank" class="wa-btn-chat">🚀 Click aquí para agendar detalles</a>`);
-                }, 1000);
-                return;
-            }
+        // Mostrar indicador de "Escribiendo..."
+        const typingId = 'typing-' + Date.now();
+        const msgContainer = document.createElement('div');
+        msgContainer.className = 'bot-msg-group';
+        msgContainer.id = typingId;
+        const typingMsg = document.createElement('div');
+        typingMsg.className = 'message bot-message';
+        typingMsg.innerHTML = '<i>Escribiendo inteligente... 🤖</i>';
+        msgContainer.appendChild(typingMsg);
+        chatMessages.appendChild(msgContainer);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            // Keyword Matching with Sales Focus & Expanded Knowledge
-            if (lowerText.includes('invitacion') || lowerText.includes('15 años') || lowerText.includes('xv')) {
-                botMessage('¡Hacemos invitaciones digitales increíbles! Son interactivas, tienen mapa, confirmación de asistencia y música. ¿Para cuándo es el evento? Dime tu nombre y te mando ejemplos.');
-                userState = 'asking_name';
-            } else if (lowerText.includes('precio') || lowerText.includes('cuanto') || lowerText.includes('costo')) {
-                botMessage('Nuestros proyectos son personalizados para maximizar tu retorno de inversión. Para darte un presupuesto exacto y justo, ¿me dices tu nombre para empezar el briefing?');
-                userState = 'asking_name';
-            } else if (lowerText.includes('web') || lowerText.includes('pagina')) {
-                botMessage('Desarrollamos sitios con tecnología Liquid Glass. Mira este ejemplo:', {
-                    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=400',
-                    title: 'Web Apps Premium',
-                    desc: 'Sitios ultra-rápidos y modernos que capturan la atención.',
-                    link: '#services'
-                });
-            } else if (lowerText.includes('branding') || lowerText.includes('logo')) {
-                botMessage('Diseñamos identidades que dejan huella. ¿Quieres ver nuestra metodología?', {
-                    image: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&q=80&w=400',
-                    title: 'Identidad Visual',
-                    desc: 'Logos y branding que transmiten autoridad y estilo.',
-                    link: 'branding-detail.html'
-                });
-            } else if (lowerText.includes('pos') || lowerText.includes('punto de venta') || lowerText.includes('caja registradora') || lowerText.includes('inventario')) {
-                botMessage('Nuestros sistemas de Punto de Venta (POS) tienen tecnología de vanguardia para controlar tu inventario y aumentar tus ventas. Mira esto:', {
-                    image: 'assets/pos-mockup.png',
-                    title: 'Sistemas POS',
-                    desc: 'Control total para tu negocio, restaurante o tienda.',
-                    link: 'pos-detail.html'
-                });
-            } else if (lowerText.includes('marketing') || lowerText.includes('publicidad') || lowerText.includes('redes')) {
-                botMessage('Gestionamos tus redes con contenido de alto impacto y campañas publicitarias enfocadas en ventas. ¿Buscas crecer en Instagram, Facebook o TikTok?');
-            } else if (lowerText.includes('tiempo') || lowerText.includes('tarda')) {
-                botMessage('Un proyecto de alta calidad suele tomar entre 2 a 4 semanas. La velocidad y la calidad son nuestro compromiso. ¿Cuál es tu fecha límite ideal?');
-            } else if (lowerText.includes('hola') || lowerText.includes('buenos')) {
-                botMessage('¡Hola! Es un gusto saludarte. Soy el asistente de TodoDigital NMR. ¿Buscas escalar tu negocio con tecnología o diseño? Tip: ¡Pídeme un cambio de color!');
-            } else if (lowerText.includes('servicios') || lowerText.includes('hacen')) {
-                botMessage('Hacemos Web & Apps, Branding, Invitaciones Digitales, Marketing y Automatización con IA. ¿Qué área te interesa explorar hoy?');
+        let wokeUpMessageShown = false;
+        const coffeeTimeout = setTimeout(() => {
+            if (!wokeUpMessageShown) {
+                botMessage('¡Hola! ☕ Dame un segundito, nuestro Asistente IA está preparando su café para atenderte como te mereces... ya casi está aquí.');
+                wokeUpMessageShown = true;
+            }
+        }, 3500); // 3.5 segundos para detectar el "despertado" de Render
+
+        try {
+            // Conectar con el BRAIN (Servidor Node.js -> OpenAI)
+            const response = await fetch('http://localhost:3000/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: conversationHistory })
+            });
+            
+            clearTimeout(coffeeTimeout); // Cancelar el mensaje si respondió rápido
+            
+            if (!response.ok) throw new Error('Error en conexión con el Cerebro');
+            
+            const data = await response.json();
+            
+            // Quitar indicador de "Escribiendo..."
+            const typingEl = document.getElementById(typingId);
+            if (typingEl) typingEl.remove();
+            
+            if (data.reply) {
+                // Parsear Markdown a HTML para que el link sea cliqueable
+                let htmlReply = data.reply
+                    .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>') // Negritas
+                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: var(--accent-blue); text-decoration: underline; font-weight: bold;">$1</a>'); // Enlaces
+                
+                // Si la IA mandó el enlace crudo (sin formato Markdown)
+                if (!htmlReply.includes('<a href')) {
+                    htmlReply = htmlReply.replace(/(https:\/\/calendly\.com[^\s]+?)([\.\?\!])?(\s|$)/g, '<a href="$1" target="_blank" style="color: var(--accent-blue); text-decoration: underline; font-weight: bold;">$1</a>$2$3');
+                }
+
+                botMessage(htmlReply);
+                conversationHistory.push({ role: 'assistant', content: data.reply });
             } else {
-                botMessage('Esa es una buena pregunta. Para darte la respuesta exacta que necesitas, hablemos directamente. ¿Cómo te llamas?');
-                userState = 'asking_name';
+                botMessage('Tuve una interferencia de conexión. ¿Puedes repetirlo?');
             }
-        }, 1000);
+        } catch (error) {
+            clearTimeout(coffeeTimeout);
+            console.error('Error de IA:', error);
+            const typingEl = document.getElementById(typingId);
+            if (typingEl) typingEl.remove();
+            botMessage('⚠️ Alerta: El motor cerebral (Servidor Backend) está desconectado. Por favor enciende el servidor `node server.js` para que pueda hablar.');
+        }
     };
 
     if (chatSend) chatSend.addEventListener('click', processInput);
