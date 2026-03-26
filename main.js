@@ -376,6 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    let wokeUpMessageShown = false;
     const processInput = async () => {
         const text = chatInput.value.trim();
         const lowerText = text.toLowerCase();
@@ -408,13 +409,12 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.appendChild(msgContainer);
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        let wokeUpMessageShown = false;
         const coffeeTimeout = setTimeout(() => {
             if (!wokeUpMessageShown) {
                 botMessage('¡Hola! ☕ Dame un segundito, nuestro Asistente IA está preparando su café para atenderte como te mereces... ya casi está aquí.');
                 wokeUpMessageShown = true;
             }
-        }, 3500); // 3.5 segundos para detectar el "despertado" de Render
+        }, 5000); // 5 segundos para detectar el "despertado" de Render
 
         try {
             // Conectar con el BRAIN (Servidor en Render)
