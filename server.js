@@ -87,8 +87,8 @@ app.post('/api/chat', async (req, res) => {
             const transporter = nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
-                    user: 'tododigitalnmr@gmail.com',
-                    pass: 'ukblaydkljbinsgp' // El código: 'ukbl aydk ljbi nsgp'
+                    user: process.env.GMAIL_USER,
+                    pass: process.env.GMAIL_PASS
                 }
             });
 
@@ -112,8 +112,8 @@ app.post('/api/chat', async (req, res) => {
             });
 
             // Enviar alerta simultánea a TELEGRAM
-            const TELEGRAM_TOKEN = '8775970767:AAFRqLQ1pWLjtIgEnpbotB7NM2mOh3PVo_8';
-            const CHAT_ID = '8350432897';
+            const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+            const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
             const tgMessage = `🚨 <b>¡NUEVO LEAD CERRADO DE IA!</b> 🚨\n\nTu Inteligencia Artificial acaba de entregar el enlace oficial de Calendly.\n\nAquí tienes el resumen del cliente:\n\n${convoSummary.replace(/<br>/g, '\n')}`;
             
             fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
