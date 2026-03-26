@@ -139,6 +139,94 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
+// --- META WEBHOOK INTEGRATION (Facebook & Instagram) ---
+
+// Verificación del Webhook (Meta pide esto al configurar)
+app.get('/webhook', (req, res) => {
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+
+    if (mode && token) {
+        if (mode === 'subscribe' && token === process.env.VERIFY_TOKEN) {
+            console.log('✅ Webhook verificado por Meta');
+            res.status(200).send(challenge);
+        } else {
+            res.sendStatus(403);
+        }
+    }
+});
+
+// Recepción de mensajes desde Messenger o Instagram
+app.post('/webhook', async (req, res) => {
+    const body = req.body;
+
+    if (body.object === 'page' || body.object === 'instagram') {
+        body.entry.forEach(async (entry) => {
+            const webhook_event = entry.messaging[0];
+            const sender_psid = webhook_event.sender.id;
+
+            if (webhook_event.message && webhook_event.message.text) {
+                const messageText = webhook_event.message.text;
+                console.log(`📩 Mensaje recibido de ${sender_psid}: ${messageText}`);
+                
+                // Procesar con OpenAI usando el mismo cerebro que el sitio web
+                await handleMetaMessage(sender_psid, messageText);
+            }
+        });
+        res.status(200).send('EVENT_RECEIVED');
+    } else {
+        res.sendStatus(404);
+    }
+});
+
+// Función para procesar con IA y responder a Meta
+async function handleMetaMessage(psid, text) {
+    try {
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { role: 'system', content: SYSTEM_PROMPT },
+                { role: 'user', content: text }
+            ],
+            temperature: 0.7,
+            max_tokens: 350
+        });
+
+        const replyText = completion.choices[0].message.content;
+        await callMetaSendAPI(psid, replyText);
+    } catch (error) {
+        console.error("❌ Error en IA para Meta:", error);
+    }
+}
+
+// Envío de la respuesta a la API de Meta
+async function callMetaSendAPI(psid, responseText) {
+    const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+    const url = `https://graph.facebook.com/v21.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`;
+
+    const request_body = {
+        recipient: { id: psid },
+        message: { text: responseText }
+    };
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(request_body)
+        });
+        if (response.ok) {
+            console.log(`✅ Respuesta enviada a Meta para el usuario ${psid}`);
+        } else {
+            const errData = await response.json();
+            console.error('❌ Error enviando a Meta:', errData);
+        }
+    } catch (error) {
+        console.error('❌ Error de conexión con Meta API:', error);
+    }
+}
+
 
 
 app.use(express.static(__dirname));
