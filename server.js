@@ -180,21 +180,46 @@ app.post('/webhook', async (req, res) => {
     }
 });
 
-// Función para procesar con IA y responder a Meta
+// --- MEMORIA TEMPORAL PARA META ---
+const conversationHistory = {};
+
+// Función para procesar con IA y responder a Meta (con Memoria)
 async function handleMetaMessage(psid, text) {
     try {
+        // 1. Inicializar historial si no existe para este usuario
+        if (!conversationHistory[psid]) {
+            conversationHistory[psid] = [
+                { role: 'system', content: SYSTEM_PROMPT }
+            ];
+        }
+
+        // 2. Agregar el mensaje actual del usuario al historial
+        conversationHistory[psid].push({ role: 'user', content: text });
+
+        // 3. Mantener solo los últimos 10 mensajes para no saturar la memoria
+        if (conversationHistory[psid].length > 11) {
+            conversationHistory[psid] = [
+                conversationHistory[psid][0], // Mantener siempre el SYSTEM_PROMPT
+                ...conversationHistory[psid].slice(-10)
+            ];
+        }
+
+        // 4. Llamada a OpenAI con TODO el historial acumulado
         const completion = await openai.chat.completions.create({
             model: "gpt-4o-mini",
-            messages: [
-                { role: 'system', content: SYSTEM_PROMPT },
-                { role: 'user', content: text }
-            ],
+            messages: conversationHistory[psid],
             temperature: 0.7,
             max_tokens: 350
         });
 
         const replyText = completion.choices[0].message.content;
+
+        // 5. Guardar la respuesta de la IA en el historial para el contexto futuro
+        conversationHistory[psid].push({ role: 'assistant', content: replyText });
+
+        // 6. Enviar respuesta final a Meta
         await callMetaSendAPI(psid, replyText);
+
     } catch (error) {
         console.error("❌ Error en IA para Meta:", error);
     }
