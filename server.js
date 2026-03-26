@@ -5,13 +5,6 @@ const nodemailer = require('nodemailer');
 const { OpenAI } = require('openai');
 require('dotenv').config();
 
-const path = require('path');
-  onst express = require('express');
-const cors = require('cors');
-require('dotenv').config();
-const { OpenAI } = require('openai');
-                          const path = require('path'););
-
 const app = express();
 app.use(cors());
 app.use(express.json());
