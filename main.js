@@ -417,8 +417,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3500); // 3.5 segundos para detectar el "despertado" de Render
 
         try {
-            // Conectar con el BRAIN (Servidor Node.js -> OpenAI)
-            const response = await fetch('http://localhost:3000/api/chat', {
+            // Conectar con el BRAIN (Servidor en Render)
+            const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ messages: conversationHistory })
