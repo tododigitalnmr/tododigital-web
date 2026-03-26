@@ -1,8 +1,15 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+const nodemailer = require('nodemailer');
+const { OpenAI } = require('openai');
+require('dotenv').config();
+
+const path = require('path');
+  onst express = require('express');
+const cors = require('cors');
 require('dotenv').config();
 const { OpenAI } = require('openai');
-const nodemailer = require('nodemailer'
                           const path = require('path'););
 
 const app = express();
