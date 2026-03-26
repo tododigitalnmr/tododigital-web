@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const { OpenAI } = require('openai');
-const nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer'
+                          const path = require('path'););
 
 const app = express();
 app.use(cors());
@@ -129,6 +130,15 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
+
+
+app.use(express.static(__dirname));
+
+app.get('/', (req, res) => {
+      res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Servir archivos est
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Servidor de Inteligencia Artificial activo en http://localhost:${PORT}`);
