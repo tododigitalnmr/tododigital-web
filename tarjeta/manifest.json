@@ -1,0 +1,21 @@
+{
+  "name": "Todo Digital NMR - Tarjeta",
+  "short_name": "Mi Tarjeta",
+  "start_url": ".",
+  "display": "fullscreen",
+  "background_color": "#02040a",
+  "theme_color": "#02040a",
+  "description": "Tarjeta de Presentación 3D Interactiva",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
