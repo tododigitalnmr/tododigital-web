@@ -498,19 +498,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.removeChild(dummy);
                 alert('¡Mensaje elegante copiado al portapapeles para WhatsApp!');
             }
-            const viewCardBtn = document.getElementById('view-card');
+        });
+    }
+
+    // --- DIGITAL CARD MODAL (Fixed Nesting) ---
+    const viewCardBtn = document.getElementById('view-card');
     const cardModal = document.getElementById('card-modal');
     const closeModal = document.querySelector('.close-modal');
     const businessCard = document.getElementById('business-card');
 
-    if (viewCardBtn) {
-        viewCardBtn.addEventListener('click', () => {
+    if (viewCardBtn && cardModal) {
+        viewCardBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             cardModal.classList.add('active');
             trackEvent('DigitalCard_Viewed');
         });
     }
 
-    if (closeModal) {
+    if (closeModal && cardModal) {
         closeModal.addEventListener('click', () => {
             cardModal.classList.remove('active');
         });
@@ -524,10 +529,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Close modal on outside click
     window.addEventListener('click', (e) => {
-        if (e.target === cardModal) {
+        if (cardModal && e.target === cardModal) {
             cardModal.classList.remove('active');
         }
     });
-});
-    }
 });
