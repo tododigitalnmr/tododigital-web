@@ -38,7 +38,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     const card = document.getElementById('card');
-    let isFlipped = false;
+    const urlParams = new URLSearchParams(window.location.search);
+    let isFlipped = urlParams.get('side') === 'back';
+    
+    if (isFlipped) {
+        card.classList.add('flipped');
+    }
+
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     
     // Función para actualizar la rotación (Tilt + Flip)
@@ -48,6 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const finalY = baseRotationY + (isFlipped ? -tiltY : tiltY);
         card.style.transform = `rotateX(${-tiltX}deg) rotateY(${finalY}deg)`;
     }
+
+    if (isFlipped) updateRotation();
 
     const startBtn = document.getElementById('start-btn');
     const overlay = document.getElementById('welcome-overlay');
