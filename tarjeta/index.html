@@ -19,9 +19,10 @@
 <body>
     <div id="welcome-overlay">
         <div class="welcome-content">
-            <img src="logo.png" alt="Logo" class="welcome-logo">
-            <h1 style="color: #00d2ff; font-family: 'Montserrat', sans-serif; margin: 20px 0 10px; font-size: 1.8rem;">Todo Digital NMR</h1>
-            <button id="start-btn" class="share-btn" style="padding: 15px 40px; font-size: 1.1rem; background: var(--accent-blue); border-color: var(--accent-blue); color: #000; font-weight: bold; margin-top: 20px;">VER TARJETA</button>
+            <img src="logo.png" alt="Logo" class="welcome-logo" style="width: 450px; height: 450px; margin-bottom: 20px; filter: drop-shadow(0 0 50px rgba(0, 210, 255, 0.6));">
+            <h1 style="color: #fff; font-family: 'Montserrat', sans-serif; margin: 0; font-size: 2.8rem; letter-spacing: -1px; font-weight: 800; text-shadow: 0 0 20px rgba(0, 210, 255, 0.4);">Natanael M.R.</h1>
+            <p style="color: var(--accent-blue); font-family: 'Montserrat', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 4px; font-size: 1rem; margin-top: 5px;">Director Creativo & Tech Lead</p>
+            <button id="start-btn" class="share-btn" style="padding: 20px 60px; font-size: 1.2rem; background: var(--accent-blue); border-color: var(--accent-blue); color: #000; font-weight: 900; border-radius: 50px; box-shadow: 0 0 40px var(--accent-blue); margin-top: 40px; cursor: pointer; transition: all 0.3s;">VIVIR EXPERIENCIA</button>
         </div>
     </div>
     <div class="container">
@@ -36,48 +37,64 @@
                 <div id="particles-back" class="particles-bg"></div>
                 <img src="logo.png" alt="Mini Logo NMR" class="logo-back">
                 
-                <div class="header" style="position: relative; z-index: 1;">
-                    <h2>Nuestros Servicios</h2>
-                    <div class="underline"></div>
+                <div class="user-info" style="position: relative; z-index: 2; padding: 0 5px; margin-bottom: 15px;">
+                    <h2 style="font-size: 1.6rem; color: #fff; margin: 0; font-family: 'Montserrat', sans-serif; letter-spacing: -0.5px;">Natanael M.R.</h2>
+                    <p style="color: var(--accent-blue); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-top: 3px;">Tech Lead & Creative Director</p>
+                    <div class="underline" style="width: 40px; margin-top: 10px; height: 3px;"></div>
                 </div>
-                <ul class="services" style="position: relative; z-index: 1;">
-                    <li>
+
+                <div class="services-list" style="position: relative; z-index: 2; width: 100%; margin-top: 10px;">
+                    <div class="service-item" onclick="window.location.href='../web-detail.html'">
                         <span class="icon">💻</span>
-                        <div class="service-info">
-                            <h3>Desarrollo Web y Móvil</h3>
-                            <p>Sitios web modernos y aplicaciones a medida.</p>
+                        <div class="info">
+                            <h3>Web & Apps</h3>
+                            <p>Sistemas y Apps Premium</p>
                         </div>
-                    </li>
-                    <li>
+                    </div>
+                    <div class="service-item" onclick="window.location.href='../marketing-detail.html'">
                         <span class="icon">🚀</span>
-                        <div class="service-info">
+                        <div class="info">
                             <h3>Marketing Digital</h3>
-                            <p>Estrategias para potenciar tu presencia online.</p>
+                            <p>Estrategias de Crecimiento</p>
                         </div>
-                    </li>
-                    <li>
+                    </div>
+                    <div class="service-item" onclick="window.location.href='../branding-detail.html'">
                         <span class="icon">🎨</span>
-                        <div class="service-info">
-                            <h3>Identidad Corporativa</h3>
-                            <p>Diseño de logos y manuales de marca profesionales.</p>
+                        <div class="info">
+                            <h3>Branding</h3>
+                            <p>Identidad Corporativa Top</p>
                         </div>
-                    </li>
-                    <li>
+                    </div>
+                    <div class="service-item" onclick="window.location.href='../pos-detail.html'">
+                        <span class="icon">📊</span>
+                        <div class="info">
+                            <h3>Puntos de Venta</h3>
+                            <p>Control Total POS/ERP</p>
+                        </div>
+                    </div>
+                    <div class="service-item" onclick="window.location.href='../whatsapp-detail.html'">
+                        <span class="icon">🤖</span>
+                        <div class="info">
+                            <h3>Asistentes IA</h3>
+                            <p>Automatización Inteligente</p>
+                        </div>
+                    </div>
+                    <div class="service-item" onclick="window.location.href='../invitation-detail.html'">
                         <span class="icon">💌</span>
-                        <div class="service-info">
-                            <h3>Invitaciones Digitales</h3>
-                            <p>Diseños interactivos y elegantes para tus eventos.</p>
+                        <div class="info">
+                            <h3>Invitaciones 3D</h3>
+                            <p>Experiencias Memorables</p>
                         </div>
-                    </li>
-                </ul>
-                <div class="social-links" style="position: relative; display: flex; gap: 8px; width: 100%; justify-content: center; margin-top: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                    <a href="https://wa.me/528991346198" target="_blank" class="share-btn social-link" style="background: rgba(37, 211, 102, 0.2); border-color: rgba(37, 211, 102, 0.5); font-size: 0.65rem;">💬 WhatsApp</a>
-                    <a href="https://www.facebook.com/profile.php?id=61562942491577" target="_blank" class="share-btn social-link" style="background: rgba(24, 119, 242, 0.2); border-color: rgba(24, 119, 242, 0.5); font-size: 0.65rem;">📘 Facebook</a>
-                    <a href="https://www.tododigitalnmr.com" target="_blank" class="share-btn social-link" style="background: rgba(255, 255, 255, 0.15); border-color: rgba(255, 255, 255, 0.3); font-size: 0.65rem;">🌐 Web</a>
+                    </div>
                 </div>
-                <div class="footer" style="position: relative; z-index: 1;">
-                    <a href="Contacto_TodoDigital.vcf" download="Contacto_TodoDigital.vcf" class="share-btn social-link" style="background: rgba(0, 162, 255, 0.2);">💾 Guardar Contacto</a>
-                    <button class="share-btn" id="shareBtn">🔗 Compartir</button>
+
+                <div class="social-links" style="position: relative; z-index: 2; display: flex; gap: 8px; width: 100%; justify-content: center; margin-top: auto; margin-bottom: 10px;">
+                    <a href="https://wa.me/528991346198" target="_blank" class="share-btn social-link" style="background: rgba(37, 211, 102, 0.15); border-color: rgba(37, 211, 102, 0.3); font-size: 0.6rem;">WhatsApp</a>
+                    <a href="https://www.facebook.com/profile.php?id=61562942491577" target="_blank" class="share-btn social-link" style="background: rgba(24, 119, 242, 0.15); border-color: rgba(24, 119, 242, 0.3); font-size: 0.6rem;">Facebook</a>
+                </div>
+                <div class="footer" style="position: relative; z-index: 2; width: 100%; display: flex; gap: 5px;">
+                    <a href="Contacto_TodoDigital.vcf" download="Contacto_TodoDigital.vcf" class="share-btn" style="flex: 1; text-align: center; border-radius: 12px; font-size: 0.6rem; padding: 10px 5px;">💾 GUARDAR</a>
+                    <button class="share-btn" id="shareBtn" style="flex: 1; border-radius: 12px; font-size: 0.6rem; padding: 10px 5px;">🔗 COMPARTIR</button>
                 </div>
             </div>
         </div>

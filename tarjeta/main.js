@@ -116,20 +116,73 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Datos de Servicios (Contenido de la Web Principal)
+    const serviceData = {
+        web: {
+            title: "Plataformas Web Premium",
+            content: "Desarrollamos sitios web de alto impacto con UI/UX de nivel mundial. Optimizados para SEO, velocidad máxima y conversión de leads. Tu negocio merece una presencia digital que venda sola."
+        },
+        marketing: {
+            title: "Marketing & Facebook Ads",
+            content: "Estrategias agresivas de crecimiento mediante pautas publicitarias optimizadas. No solo generamos clics, generamos clientes potenciales calificados para que tu equipo de ventas no pare."
+        },
+        branding: {
+            title: "Branding & Identidad",
+            content: "Diseñamos marcas que se quedan en la mente. Desde logotipos minimalistas hasta manuales de identidad completos. Construimos la autoridad visual que tu empresa necesita."
+        },
+        ia: {
+            title: "Asistentes de IA (Bots)",
+            content: "Automatización total de tus canales de venta. Bots inteligentes con GPT-4 que atienden 24/7, cierran citas y responden dudas frecuentes en WhatsApp e Instagram."
+        },
+        invitaciones: {
+            title: "Invitaciones Digitales",
+            content: "Experiencias interactivas para eventos premium. Confirmación de asistencia (RSVP), ubicación en tiempo real, música personalizada y diseños cinematográficos inolvidables."
+        }
+    };
+
+    const detailOverlay = document.getElementById('service-detail');
+    const detailContent = document.getElementById('detail-content');
+
+    window.showService = function(type) {
+        const data = serviceData[type];
+        if (data) {
+            detailContent.innerHTML = `<h3>${data.title}</h3><p>${data.content}</p>`;
+            detailOverlay.classList.add('active');
+        }
+    };
+
+    window.hideService = function() {
+        detailOverlay.classList.remove('active');
+    };
+
+    // Compartir URL
+    const shareBtn = document.getElementById('shareBtn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                const originalText = shareBtn.innerHTML;
+                shareBtn.innerText = '¡Copiado!';
+                shareBtn.style.background = '#28a745';
+                setTimeout(() => {
+                    shareBtn.innerHTML = originalText;
+                    shareBtn.style.background = '';
+                }, 2000);
+            });
+        });
+    }
+
     // Girar la tarjeta al hacer clic
     card.addEventListener('click', (e) => {
-        // DETECCIÓN MAESTRA: Si el clic toca un botón de acción
-        const actionBtn = e.target.closest('.share-btn');
+        // DETECCIÓN MAESTRA: Si el clic toca un botón de acción, una caja de servicio o el modal
+        const actionBtn = e.target.closest('.share-btn, .service-box, .service-detail, .social-link');
         if (actionBtn) {
-            // Detenemos el giro de la tarjeta
-            e.stopPropagation();
-            
-            // Si es un botón JS (como Compartir), prevenimos el default
-            if (actionBtn.id === 'shareBtn') {
-                e.preventDefault();
+            // Detenemos el giro de la tarjeta si es un elemento interactivo
+            if (!e.target.classList.contains('close-detail')) {
+                e.stopPropagation();
             }
-            // Para los links <a> (WhatsApp/FB/VCF), NO llamamos preventDefault.
-            // Dejamos que el navegador maneje el href nativamente, lo cual es más estable en iOS/Android.
             return;
         }
 
@@ -164,23 +217,4 @@ document.addEventListener('DOMContentLoaded', () => {
             updateRotation();
         }
     });
-
-    // Compartir URL
-    const shareBtn = document.getElementById('shareBtn');
-    if (shareBtn) {
-        shareBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const url = window.location.href;
-            navigator.clipboard.writeText(url).then(() => {
-                const originalText = shareBtn.innerHTML;
-                shareBtn.innerText = '¡Copiado!';
-                shareBtn.style.background = '#28a745';
-                setTimeout(() => {
-                    shareBtn.innerHTML = originalText;
-                    shareBtn.style.background = '';
-                }, 2000);
-            });
-        });
-    }
 });
