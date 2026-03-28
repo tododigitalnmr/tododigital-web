@@ -320,3 +320,92 @@ body {
 .card:hover {
     box-shadow: 0 40px 100px rgba(0, 210, 255, 0.2);
 }
+
+/* Flip Hint Style */
+.flip-hint {
+    position: absolute;
+    bottom: 40px;
+    width: 100%;
+    left: 0;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 300;
+    animation: fadeInOut 2.5s infinite ease-in-out;
+    pointer-events: none;
+    z-index: 20;
+}
+
+@keyframes fadeInOut {
+    0%, 100% { opacity: 0.1; transform: translateY(0); }
+    50% { opacity: 0.5; transform: translateY(-3px); }
+}
+
+/* Social Icon Buttons */
+.social-icon-btn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    backdrop-filter: blur(5px);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.social-icon-btn svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+}
+
+.social-icon-btn:hover {
+    transform: translateY(-5px) scale(1.1);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.social-icon-btn:hover svg {
+    transform: scale(1.1);
+}
+
+.social-icon-btn.whatsapp:hover {
+    border-color: #25d366;
+    box-shadow: 0 0 20px rgba(37, 211, 102, 0.4);
+    color: #25d366;
+}
+
+.social-icon-btn.facebook:hover {
+    border-color: #1877f2;
+    box-shadow: 0 0 20px rgba(24, 119, 242, 0.4);
+    color: #1877f2;
+}
+
+.social-icon-btn.web:hover {
+    border-color: #00f3ff;
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+    color: #00f3ff;
+}
+
+.social-icon-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.social-icon-btn:hover::after {
+    opacity: 1;
+}

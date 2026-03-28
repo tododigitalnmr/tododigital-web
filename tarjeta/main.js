@@ -199,14 +199,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Girar la tarjeta al hacer clic
     card.addEventListener('click', (e) => {
-        // DETECCIÓN MAESTRA: Si el clic toca un botón de acción, una caja de servicio o el modal
-        const actionBtn = e.target.closest('.share-btn, .service-box, .service-detail, .social-link');
+        // DETECCIÓN MAESTRA: Si el clic toca un botón de acción, una caja de servicio o el social link
+        const actionBtn = e.target.closest('.share-btn, .service-item-new, .social-icon-btn, .service-detail, .social-link');
         if (actionBtn) {
             // Detenemos el giro de la tarjeta si es un elemento interactivo
             if (!e.target.classList.contains('close-detail')) {
-                e.stopPropagation();
+                // No detenemos propagación si queremos que el link funcione, 
+                // pero sí evitamos que la lógica de abajo (isFlipped = !isFlipped) se ejecute.
+                return;
             }
-            return;
         }
 
         isFlipped = !isFlipped;
