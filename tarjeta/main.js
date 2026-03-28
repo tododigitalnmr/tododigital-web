@@ -38,11 +38,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     const card = document.getElementById('card');
+    const overlay = document.getElementById('welcome-overlay');
     const urlParams = new URLSearchParams(window.location.search);
     let isFlipped = urlParams.get('side') === 'back';
     
+    // Si es un retorno (?side=back), ocultamos el overlay de bienvenida automáticamente
     if (isFlipped) {
         card.classList.add('flipped');
+        if (overlay) overlay.classList.add('hidden');
     }
 
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -58,16 +61,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isFlipped) updateRotation();
 
     const startBtn = document.getElementById('start-btn');
-    const overlay = document.getElementById('welcome-overlay');
 
-    // Función para activar pantalla completa
+    // Función para activar pantalla completa mejorada
     function activateFullscreen() {
-        const docEl = document.documentElement;
+        const docEl = document.body; // Cambiado a body para mejor soporte
         if (docEl.requestFullscreen) {
             docEl.requestFullscreen();
-        } else if (docEl.webkitRequestFullscreen) {
+        } else if (docEl.webkitRequestFullscreen) { /* Safari / Older Chrome */
             docEl.webkitRequestFullscreen();
-        } else if (docEl.msRequestFullscreen) {
+        } else if (docEl.mozRequestFullScreen) { /* Firefox */
+            docEl.mozRequestFullScreen();
+        } else if (docEl.msRequestFullscreen) { /* IE/Edge */
             docEl.msRequestFullscreen();
         }
     }
