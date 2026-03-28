@@ -40,12 +40,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.getElementById('card');
     const overlay = document.getElementById('welcome-overlay');
     const urlParams = new URLSearchParams(window.location.search);
-    let isFlipped = urlParams.get('side') === 'back';
+    const sideParam = urlParams.get('side');
+    let isFlipped = (sideParam === 'back');
     
-    // Si es un retorno (?side=back), ocultamos el overlay de bienvenida automáticamente
+    console.log("Modo Retorno Inteligente:", isFlipped ? "ACTIVO (?side=back)" : "INACTIVO");
+
     if (isFlipped) {
         card.classList.add('flipped');
-        if (overlay) overlay.classList.add('hidden');
+        if (overlay) {
+            overlay.style.display = 'none'; // Asegurar ocultamiento total
+            overlay.classList.add('hidden');
+        }
+    } else {
+        console.log("Mostrando Pantalla de Bienvenida");
+        if (overlay) {
+            overlay.style.display = 'flex';
+            overlay.classList.remove('hidden');
+        }
     }
 
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
