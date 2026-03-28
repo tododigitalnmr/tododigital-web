@@ -260,15 +260,19 @@ body {
     flex-direction: column;
     align-items: center;
     max-width: 90vw;
+    gap: 0; /* More compact */
 }
 
 .welcome-logo {
-    max-width: 85vw; /* Responsive limit */
+    width: 380px !important; /* Slightly smaller than 450px for better fit */
+    height: 380px !important;
+    margin-bottom: -10px !important; /* Move elements closer */
+    max-width: 85vw;
     object-fit: contain;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(30px); }
+    from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
 

@@ -42,5 +42,15 @@
             <a href="https://wa.me/528991346198" class="btn-primary">Cotizar mi Proyecto</a>
         </div>
     </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('ref') === 'tarjeta') {
+            const backLink = document.querySelector('.back-link');
+            if (backLink) {
+                backLink.href = 'tarjeta/index.html';
+                backLink.innerHTML = '← Volver a Tarjeta Digital';
+            }
+        }
+    </script>
 </body>
 </html>
