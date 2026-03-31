@@ -157,21 +157,50 @@ app.get('/webhook', (req, res) => {
     }
 });
 
-// Recepción de mensajes desde Messenger o Instagram
+// Recepción de eventos (Mensajes o Comentarios)
 app.post('/webhook', async (req, res) => {
     const body = req.body;
 
     if (body.object === 'page' || body.object === 'instagram') {
         body.entry.forEach(async (entry) => {
-            const webhook_event = entry.messaging[0];
-            const sender_psid = webhook_event.sender.id;
+            // 1. Manejo de MENSAJES DIRECTOS (Messenger/IG DM)
+            if (entry.messaging) {
+                const webhook_event = entry.messaging[0];
+                const sender_psid = webhook_event.sender.id;
 
-            if (webhook_event.message && webhook_event.message.text) {
-                const messageText = webhook_event.message.text;
-                console.log(`📩 Mensaje recibido de ${sender_psid}: ${messageText}`);
-                
-                // Procesar con OpenAI usando el mismo cerebro que el sitio web
-                await handleMetaMessage(sender_psid, messageText);
+                if (webhook_event.message && webhook_event.message.text) {
+                    const messageText = webhook_event.message.text;
+                    console.log(`📩 Mensaje DM de ${sender_psid}: ${messageText}`);
+                    await handleMetaMessage(sender_psid, messageText);
+                }
+            }
+
+            // 2. Manejo de COMENTARIOS (Facebook Feed o Instagram Comments)
+            if (entry.changes) {
+                const change = entry.changes[0];
+                const value = change.value;
+
+                // Caso Facebook: Comentario en el Feed (incluye Anuncios)
+                if (change.field === 'feed' && value.item === 'comment' && value.verb === 'add') {
+                    const comment_id = value.comment_id;
+                    const comment_text = value.message;
+                    const commenter_id = value.from.id;
+                    
+                    // Evitar respondernos a nosotros mismos (si la IA ya comentó)
+                    if (commenter_id !== entry.id) {
+                        console.log(`💬 Comentario FB de ${value.from.name}: ${comment_text}`);
+                        await handleMetaComment(comment_id, comment_text, 'facebook');
+                    }
+                }
+
+                // Caso Instagram Graph API: Comentarios en posts
+                if (change.field === 'comments' && value.text) {
+                    const comment_id = value.id;
+                    const comment_text = value.text;
+                    
+                    console.log(`📸 Comentario IG: ${comment_text}`);
+                    await handleMetaComment(comment_id, comment_text, 'instagram');
+                }
             }
         });
         res.status(200).send('EVENT_RECEIVED');
@@ -182,6 +211,28 @@ app.post('/webhook', async (req, res) => {
 
 // --- MEMORIA TEMPORAL PARA META ---
 const conversationHistory = {};
+
+// Función específica para responder a COMENTARIOS
+async function handleMetaComment(commentId, text, platform) {
+    try {
+        // En comentarios usamos respuestas directas y cortas
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { role: 'system', content: SYSTEM_PROMPT + "\n\nIMPORTANTE: Estás respondiendo un COMENTARIO PÚBLICO. Sé más breve que nunca (1 o 2 líneas máximo) e invita a que te escriban por privado o agenden si están interesados." },
+                { role: 'user', content: text }
+            ],
+            temperature: 0.7,
+            max_tokens: 150
+        });
+
+        const replyText = completion.choices[0].message.content;
+        await callMetaCommentReplyAPI(commentId, replyText, platform);
+
+    } catch (error) {
+        console.error("❌ Error en IA para Comentario:", error);
+    }
+}
 
 // Función para procesar con IA y responder a Meta (con Memoria)
 async function handleMetaMessage(psid, text) {
@@ -249,6 +300,36 @@ async function callMetaSendAPI(psid, responseText) {
         }
     } catch (error) {
         console.error('❌ Error de conexión con Meta API:', error);
+    }
+}
+
+// Envío de respuesta a un COMENTARIO (FB o IG)
+async function callMetaCommentReplyAPI(commentId, responseText, platform) {
+    const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+    let url = "";
+
+    if (platform === 'facebook') {
+        // Endpoint para Facebook: /{comment-id}/comments
+        url = `https://graph.facebook.com/v21.0/${commentId}/comments?access_token=${PAGE_ACCESS_TOKEN}`;
+    } else {
+        // Endpoint para Instagram Business: /{comment-id}/replies
+        url = `https://graph.facebook.com/v21.0/${commentId}/replies?access_token=${PAGE_ACCESS_TOKEN}`;
+    }
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: responseText })
+        });
+        if (response.ok) {
+            console.log(`✅ Comentario respondido en ${platform} con éxito.`);
+        } else {
+            const errData = await response.json();
+            console.error(`❌ Error respondiendo comentario en ${platform}:`, errData);
+        }
+    } catch (error) {
+        console.error(`❌ Error conexión Meta API (Comentario):`, error);
     }
 }
 
