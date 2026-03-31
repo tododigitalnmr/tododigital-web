@@ -161,9 +161,10 @@ app.get('/webhook', (req, res) => {
 // Recepción de eventos (Mensajes o Comentarios)
 app.post('/webhook', async (req, res) => {
     const body = req.body;
+    console.log('📌 Webhook recibido:', JSON.stringify(body, null, 2));
 
     if (body.object === 'page' || body.object === 'instagram') {
-        body.entry.forEach(async (entry) => {
+        for (const entry of body.entry) {
             // 1. Manejo de MENSAJES DIRECTOS (Messenger/IG DM)
             if (entry.messaging) {
                 const webhook_event = entry.messaging[0];
@@ -203,7 +204,7 @@ app.post('/webhook', async (req, res) => {
                     await handleMetaComment(comment_id, comment_text, 'instagram');
                 }
             }
-        });
+        }
         res.status(200).send('EVENT_RECEIVED');
     } else {
         res.sendStatus(404);
@@ -278,86 +279,96 @@ async function handleMetaMessage(psid, text) {
 }
 
 // Envío de la respuesta a la API de Meta
-async function callMetaSendAPI(psid, responseText) {
-    const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
-    const path = `/v21.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`;
+function callMetaSendAPI(psid, responseText) {
+    return new Promise((resolve, reject) => {
+        const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+        const apiPath = `/v21.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`;
 
-    const request_body = JSON.stringify({
-        recipient: { id: psid },
-        message: { text: responseText }
-    });
-
-    const options = {
-        hostname: 'graph.facebook.com',
-        path: path,
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': request_body.length
-        }
-    };
-
-    const req = https.request(options, (res) => {
-        let data = '';
-        res.on('data', (chunk) => { data += chunk; });
-        res.on('end', () => {
-            if (res.statusCode === 200) {
-                console.log(`✅ Respuesta enviada a Meta para el usuario ${psid}`);
-            } else {
-                console.error('❌ Error enviando a Meta:', data);
-            }
+        const request_body = JSON.stringify({
+            recipient: { id: psid },
+            message: { text: responseText }
         });
-    });
 
-    req.on('error', (error) => {
-        console.error('❌ Error de conexión con Meta API:', error);
-    });
+        const options = {
+            hostname: 'graph.facebook.com',
+            path: apiPath,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(request_body)
+            }
+        };
 
-    req.write(request_body);
-    req.end();
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => { data += chunk; });
+            res.on('end', () => {
+                if (res.statusCode === 200) {
+                    console.log(`✅ Respuesta enviada a Meta para el usuario ${psid}`);
+                    resolve(data);
+                } else {
+                    console.error('❌ Error enviando a Meta:', data);
+                    reject(new Error(data));
+                }
+            });
+        });
+
+        req.on('error', (error) => {
+            console.error('❌ Error de conexión con Meta API:', error);
+            reject(error);
+        });
+
+        req.write(request_body);
+        req.end();
+    });
 }
 
 // Envío de respuesta a un COMENTARIO (FB o IG)
-async function callMetaCommentReplyAPI(commentId, responseText, platform) {
-    const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
-    let apiPath = "";
+function callMetaCommentReplyAPI(commentId, responseText, platform) {
+    return new Promise((resolve, reject) => {
+        const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+        let apiPath = "";
 
-    if (platform === 'facebook') {
-        apiPath = `/v21.0/${commentId}/comments?access_token=${PAGE_ACCESS_TOKEN}`;
-    } else {
-        apiPath = `/v21.0/${commentId}/replies?access_token=${PAGE_ACCESS_TOKEN}`;
-    }
-
-    const request_body = JSON.stringify({ message: responseText });
-
-    const options = {
-        hostname: 'graph.facebook.com',
-        path: apiPath,
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': request_body.length
+        if (platform === 'facebook') {
+            apiPath = `/v21.0/${commentId}/comments?access_token=${PAGE_ACCESS_TOKEN}`;
+        } else {
+            apiPath = `/v21.0/${commentId}/replies?access_token=${PAGE_ACCESS_TOKEN}`;
         }
-    };
 
-    const req = https.request(options, (res) => {
-        let data = '';
-        res.on('data', (chunk) => { data += chunk; });
-        res.on('end', () => {
-            if (res.statusCode === 200) {
-                console.log(`✅ Comentario respondido en ${platform} con éxito.`);
-            } else {
-                console.error(`❌ Error respondiendo comentario en ${platform}:`, data);
+        const request_body = JSON.stringify({ message: responseText });
+
+        const options = {
+            hostname: 'graph.facebook.com',
+            path: apiPath,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(request_body)
             }
+        };
+
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => { data += chunk; });
+            res.on('end', () => {
+                if (res.statusCode === 200) {
+                    console.log(`✅ Comentario respondido en ${platform} con éxito.`);
+                    resolve(data);
+                } else {
+                    console.error(`❌ Error respondiendo comentario en ${platform}:`, data);
+                    reject(new Error(data));
+                }
+            });
         });
-    });
 
-    req.on('error', (error) => {
-        console.error(`❌ Error conexión Meta API (Comentario):`, error);
-    });
+        req.on('error', (error) => {
+            console.error(`❌ Error conexión Meta API (Comentario):`, error);
+            reject(error);
+        });
 
-    req.write(request_body);
-    req.end();
+        req.write(request_body);
+        req.end();
+    });
 }
 
 
