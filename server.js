@@ -1,4 +1,5 @@
 const express = require('express');
+const https = require('https');
 const cors = require('cors');
 const path = require('path');
 const nodemailer = require('nodemailer');
@@ -279,58 +280,84 @@ async function handleMetaMessage(psid, text) {
 // Envío de la respuesta a la API de Meta
 async function callMetaSendAPI(psid, responseText) {
     const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
-    const url = `https://graph.facebook.com/v21.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`;
+    const path = `/v21.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`;
 
-    const request_body = {
+    const request_body = JSON.stringify({
         recipient: { id: psid },
         message: { text: responseText }
+    });
+
+    const options = {
+        hostname: 'graph.facebook.com',
+        path: path,
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': request_body.length
+        }
     };
 
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(request_body)
+    const req = https.request(options, (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+            if (res.statusCode === 200) {
+                console.log(`✅ Respuesta enviada a Meta para el usuario ${psid}`);
+            } else {
+                console.error('❌ Error enviando a Meta:', data);
+            }
         });
-        if (response.ok) {
-            console.log(`✅ Respuesta enviada a Meta para el usuario ${psid}`);
-        } else {
-            const errData = await response.json();
-            console.error('❌ Error enviando a Meta:', errData);
-        }
-    } catch (error) {
+    });
+
+    req.on('error', (error) => {
         console.error('❌ Error de conexión con Meta API:', error);
-    }
+    });
+
+    req.write(request_body);
+    req.end();
 }
 
 // Envío de respuesta a un COMENTARIO (FB o IG)
 async function callMetaCommentReplyAPI(commentId, responseText, platform) {
     const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
-    let url = "";
+    let apiPath = "";
 
     if (platform === 'facebook') {
-        // Endpoint para Facebook: /{comment-id}/comments
-        url = `https://graph.facebook.com/v21.0/${commentId}/comments?access_token=${PAGE_ACCESS_TOKEN}`;
+        apiPath = `/v21.0/${commentId}/comments?access_token=${PAGE_ACCESS_TOKEN}`;
     } else {
-        // Endpoint para Instagram Business: /{comment-id}/replies
-        url = `https://graph.facebook.com/v21.0/${commentId}/replies?access_token=${PAGE_ACCESS_TOKEN}`;
+        apiPath = `/v21.0/${commentId}/replies?access_token=${PAGE_ACCESS_TOKEN}`;
     }
 
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: responseText })
-        });
-        if (response.ok) {
-            console.log(`✅ Comentario respondido en ${platform} con éxito.`);
-        } else {
-            const errData = await response.json();
-            console.error(`❌ Error respondiendo comentario en ${platform}:`, errData);
+    const request_body = JSON.stringify({ message: responseText });
+
+    const options = {
+        hostname: 'graph.facebook.com',
+        path: apiPath,
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': request_body.length
         }
-    } catch (error) {
+    };
+
+    const req = https.request(options, (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+            if (res.statusCode === 200) {
+                console.log(`✅ Comentario respondido en ${platform} con éxito.`);
+            } else {
+                console.error(`❌ Error respondiendo comentario en ${platform}:`, data);
+            }
+        });
+    });
+
+    req.on('error', (error) => {
         console.error(`❌ Error conexión Meta API (Comentario):`, error);
-    }
+    });
+
+    req.write(request_body);
+    req.end();
 }
 
 
