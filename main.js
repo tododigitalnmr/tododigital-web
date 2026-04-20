@@ -477,20 +477,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log("🚀 Enviando reporte final a Render...", reportData);
 
-        // Navigator sendBeacon es lo más confiable para reportar al cerrar pestaña
-        if (navigator.sendBeacon) {
-            const blob = new Blob([JSON.stringify(reportData)], { type: 'application/json' });
-            const result = navigator.sendBeacon('https://tododigital-web-ok.onrender.com/api/report-lead', blob);
-            console.log("📡 Resultado de sendBeacon:", result);
-        } else {
-            fetch('https://tododigital-web-ok.onrender.com/api/report-lead', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'omit', // Solución al error de CORS
-                body: JSON.stringify(reportData),
-                keepalive: true
-            }).then(r => console.log("📡 Resultado de fetch(keepalive):", r.status));
-        }
+        // Usamos fetch con keepalive para máxima compatibilidad con CORS y estabilidad
+        fetch('https://tododigital-web-ok.onrender.com/api/report-lead', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            mode: 'cors',
+            credentials: 'omit',
+            keepalive: true,
+            body: JSON.stringify(reportData)
+        }).then(r => {
+            console.log("📡 Resultado del reporte (Status):", r.status);
+            if(r.ok) console.log("✅ Reporte entregado con éxito.");
+        }).catch(err => console.error("❌ Error enviando reporte:", err));
         reportSent = true;
     };
 

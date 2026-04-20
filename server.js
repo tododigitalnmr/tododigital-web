@@ -8,8 +8,8 @@ require('dotenv').config();
 
 const app = express();
 app.use(cors({
-    origin: '*', // Permitir todos por ahora para máxima compatibilidad
-    credentials: false // No requerir credenciales para evitar el error de CORS 
+    origin: ['https://tododigitalnmr.com', 'https://www.tododigitalnmr.com', 'http://localhost:3000'],
+    credentials: false
 }));
 app.use(express.json());
 app.use(express.static('.')); // Servir los archivos HTML/CSS/JS del proyecto
