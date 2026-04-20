@@ -7,7 +7,10 @@ const { OpenAI } = require('openai');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    origin: '*', // Permitir todos por ahora para máxima compatibilidad
+    credentials: false // No requerir credenciales para evitar el error de CORS 
+}));
 app.use(express.json());
 app.use(express.static('.')); // Servir los archivos HTML/CSS/JS del proyecto
 

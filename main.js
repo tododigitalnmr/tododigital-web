@@ -419,10 +419,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 5000); // 5 segundos para detectar el "despertado" de Render
 
         try {
-            // Conectar con el BRAIN (Apuntando a tu nuevo servidor de Render)
+            // Conectar con el BRAIN
             const response = await fetch('https://tododigital-web-ok.onrender.com/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'omit', // Solución al error de CORS
                 body: JSON.stringify({ messages: conversationHistory })
             });
             
@@ -485,6 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch('https://tododigital-web-ok.onrender.com/api/report-lead', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'omit', // Solución al error de CORS
                 body: JSON.stringify(reportData),
                 keepalive: true
             }).then(r => console.log("📡 Resultado de fetch(keepalive):", r.status));
