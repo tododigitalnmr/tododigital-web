@@ -466,6 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const sendLeadReport = () => {
+        console.log("📢 Intento de enviar reporte... status:", { reportSent, historyLength: conversationHistory.length });
         if (reportSent || conversationHistory.length < 2) return;
         
         const reportData = {
@@ -473,20 +474,22 @@ document.addEventListener('DOMContentLoaded', () => {
             type: hasConverted ? "CONVERSION" : "INTERES"
         };
 
+        console.log("🚀 Enviando reporte final a Render...", reportData);
+
         // Navigator sendBeacon es lo más confiable para reportar al cerrar pestaña
         if (navigator.sendBeacon) {
             const blob = new Blob([JSON.stringify(reportData)], { type: 'application/json' });
-            navigator.sendBeacon('https://tododigital-web-ok.onrender.com/api/report-lead', blob);
+            const result = navigator.sendBeacon('https://tododigital-web-ok.onrender.com/api/report-lead', blob);
+            console.log("📡 Resultado de sendBeacon:", result);
         } else {
             fetch('https://tododigital-web-ok.onrender.com/api/report-lead', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(reportData),
                 keepalive: true
-            });
+            }).then(r => console.log("📡 Resultado de fetch(keepalive):", r.status));
         }
         reportSent = true;
-        console.log("📊 Reporte de Lead enviado al Director.");
     };
 
     // Reportar cuando el usuario se va o cierra la pestaña
