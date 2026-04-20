@@ -419,8 +419,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 5000); // 5 segundos para detectar el "despertado" de Render
 
         try {
-            // Conectar con el BRAIN (Servidor en Render)
-            const response = await fetch('https://tododigital-web.onrender.com/api/chat', {
+            // Conectar con el BRAIN (Ahora usando ruta relativa para mayor estabilidad)
+            const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ messages: conversationHistory })
@@ -476,9 +476,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Navigator sendBeacon es lo más confiable para reportar al cerrar pestaña
         if (navigator.sendBeacon) {
             const blob = new Blob([JSON.stringify(reportData)], { type: 'application/json' });
-            navigator.sendBeacon('https://tododigital-web.onrender.com/api/report-lead', blob);
+            navigator.sendBeacon('/api/report-lead', blob);
         } else {
-            fetch('https://tododigital-web.onrender.com/api/report-lead', {
+            fetch('/api/report-lead', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(reportData),
