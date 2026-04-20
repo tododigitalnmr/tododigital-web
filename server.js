@@ -68,14 +68,109 @@ app.post('/api/chat', async (req, res) => {
 
         const replyText = completion.choices[0].message.content;
 
-        // ---- LEAD CAPTURE MAGIC: Interceptar enlace Calendly ----
+        // ---- LEAD CAPTURE MAGIC: Intercept enlace Calendly ----
         if (replyText.includes("calendly.com")) {
             console.log("🔥 ¡Cierre de venta detectado! Guardando Lead y enviando correo...");
             
             // Construir resumen de la conversión
-            let convoSummary = messages.map(m => `<b>${m.role === 'user' ? '👤 Prospecto' : '🤖 IA'}:</b> ${m.content}`).join("<br><br>");
+            let convoSummary = messages.concat({ role: 'assistant', content: replyText })
+                .map(m => `<b>${m.role === 'user' ? '👤 Prospecto' : '🤖 IA'}:</b> ${m.content}`)
+                .join("\n\n");
             
-            // Configurar el correo (Nodemailer) - Contraseña de Aplicación Oficial
+            sendLeadReportToDirector(convoSummary, "CONVERSION");
+        }
+        // --------------------------------------------------------
+        // --------------------------------------------------------
+
+        res.json({ reply: replyText });
+    } catch (error) {
+        console.error("Error en OpenAI:", error.message || error);
+        res.status(500).json({ error: "El servidor de IA está temporalmente fuera de servicio." });
+    }
+});
+// --- ENDPOINT PARA REPORTE DE SESIÓN FINALIZADA ---
+app.post('/api/report-lead', async (req, res) => {
+    try {
+        const { messages, type } = req.body;
+        
+        if (!messages || messages.length < 2) {
+            return res.status(400).json({ error: "No hay suficiente conversación para reportar." });
+        }
+
+        console.log(`📊 Generando reporte de tipo: ${type || 'INTERÉS'}`);
+
+        // Usar IA para resumir el interés del cliente
+        const analysis = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { 
+                    role: 'system', 
+                    content: "Eres un Asistente Senior de Ventas. Tu tarea es resumir una conversación de chat para el Director de la agencia. Identifica: 1. Nombre del cliente, 2. Qué servicio le interesa, 3. Por qué no agendó (objeción) y 4. Tu recomendación para cerrarlo. Sé breve, profesional y usa emojis." 
+                },
+                { role: 'user', content: JSON.stringify(messages) }
+            ],
+            temperature: 0.5
+        });
+
+        const summary = analysis.choices[0].message.content;
+        
+        // Enviar reportes
+        await sendLeadReportToDirector(summary, type || "INTERES");
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error reportando lead:", error);
+        res.status(500).json({ error: "Error al generar el reporte." });
+    }
+});
+
+// --- HELPER PARA REPORTES (Telegram + Email) ---
+async function sendLeadReportToDirector(content, type) {
+    const isConversion = type === "CONVERSION";
+    const title = isConversion ? "🚨 ¡NUEVA CITA AGENDADA DE IA!" : "🔍 REPORTE DE INTERÉS (Prospecto)";
+    const color = isConversion ? "#007BFF" : "#FFC107";
+
+    // 1. Enviar a TELEGRAM usando HTTPS nativo (Solución de compatibilidad)
+    const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+    const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+    
+    if (TELEGRAM_TOKEN && CHAT_ID) {
+        const tgMessage = `<b>${title}</b>\n\n${content}`;
+        const data = JSON.stringify({
+            chat_id: CHAT_ID,
+            text: tgMessage,
+            parse_mode: 'HTML'
+        });
+
+        const options = {
+            hostname: 'api.telegram.org',
+            port: 443,
+            path: `/bot${TELEGRAM_TOKEN}/sendMessage`,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': data.length
+            }
+        };
+
+        const req = https.request(options, (res) => {
+            let resData = '';
+            res.on('data', d => resData += d);
+            res.on('end', () => {
+                const parsed = JSON.parse(resData);
+                if (parsed.ok) console.log(`✅ Reporte ${type} enviado a Telegram.`);
+                else console.error(`❌ Error Telegram Bot:`, parsed);
+            });
+        });
+
+        req.on('error', (e) => console.error(`❌ Error conexión Telegram:`, e));
+        req.write(data);
+        req.end();
+    }
+
+    // 2. Enviar a EMAIL si es Conversión (Opcional para Interés para no saturar)
+    if (isConversion || true) { // Enviamos ambos por ahora
+        try {
             const transporter = nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
@@ -87,47 +182,21 @@ app.post('/api/chat', async (req, res) => {
             const mailOptions = {
                 from: '"🤖 Cerebro IA TodoDigital" <tododigitalnmr@gmail.com>',
                 to: 'tododigitalnmr@gmail.com',
-                subject: '🚨 ¡NUEVO CITA AGENDADA DE LA IA! - TodoDigital NMR',
-                html: `<h2 style="color:#007BFF;">¡Felicidades Director! 🎉</h2>
-                       <p>Tu Inteligencia Artificial acaba de hacer todo el trabajo de ventas y ha logrado agendar a un posible cliente.</p>
-                       <p>El cliente ya recibió tu enlace a Calendly. Aquí tienes el historial completo para que estudies todo su perfil antes de la llamada:</p>
-                       <div style="background:#f4f4f4; padding:15px; border-radius:10px; border-left:4px solid #007BFF;">
-                           ${convoSummary}
+                subject: `${title} - TodoDigital NMR`,
+                html: `<h2 style="color:${color};">${title} 🎉</h2>
+                       <div style="background:#f4f4f4; padding:15px; border-radius:10px; border-left:4px solid ${color};">
+                           ${content.replace(/\n/g, '<br>')}
                        </div>
-                       <br>
                        <p><i>Reporte automático generado por el Asistente IA de TodoDigital NMR. 🚀</i></p>`
             };
 
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) console.error("❌ Error enviando email de reporte:", error);
-                else console.log("✅ Email de Reporte enviado con éxito:", info.response);
-            });
-
-            // Enviar alerta simultánea a TELEGRAM
-            const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
-            const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
-            const tgMessage = `🚨 <b>¡NUEVO LEAD CERRADO DE IA!</b> 🚨\n\nTu Inteligencia Artificial acaba de entregar el enlace oficial de Calendly.\n\nAquí tienes el resumen del cliente:\n\n${convoSummary.replace(/<br>/g, '\n')}`;
-            
-            fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: CHAT_ID,
-                    text: tgMessage,
-                    parse_mode: 'HTML'
-                })
-            }).then(resp => resp.json())
-              .then(data => { if(data.ok) console.log('✅ Mensaje de Telegram enviado a tu celular.'); else console.error('❌ Error de Telegram:', data); })
-              .catch(err => console.error('❌ Error general Telegram:', err));
+            await transporter.sendMail(mailOptions);
+            console.log(`✅ Email de Reporte ${type} enviado.`);
+        } catch (error) {
+            console.error(`❌ Error enviando email:`, error);
         }
-        // --------------------------------------------------------
-
-        res.json({ reply: replyText });
-    } catch (error) {
-        console.error("Error en OpenAI:", error.message || error);
-        res.status(500).json({ error: "El servidor de IA está temporalmente fuera de servicio." });
     }
-});
+}
 
 // --- META WEBHOOK INTEGRATION (Facebook & Instagram) ---
 

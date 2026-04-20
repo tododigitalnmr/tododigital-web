@@ -321,6 +321,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let userState = 'idle';
     let userData = { name: '', business: '', interest: '' };
     let conversationHistory = []; // Almacena contexto para la IA inteligente
+    let hasConverted = false;
+    let reportSent = false;
 
     if (chatTrigger) {
         chatTrigger.addEventListener('click', () => {
@@ -445,6 +447,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     htmlReply = htmlReply.replace(/(https:\/\/calendly\.com[^\s]+?)([\.\?\!])?(\s|$)/g, '<a href="$1" target="_blank" style="color: var(--accent-blue); text-decoration: underline; font-weight: bold;">$1</a>$2$3');
                 }
 
+                if (data.reply.includes("calendly.com")) {
+                    hasConverted = true;
+                }
+                
                 botMessage(htmlReply);
                 conversationHistory.push({ role: 'assistant', content: data.reply });
             } else {
@@ -458,6 +464,36 @@ document.addEventListener('DOMContentLoaded', () => {
             botMessage('⚠️ Alerta: El motor cerebral (Servidor Backend) está desconectado. Por favor enciende el servidor `node server.js` para que pueda hablar.');
         }
     };
+
+    const sendLeadReport = () => {
+        if (reportSent || conversationHistory.length < 2) return;
+        
+        const reportData = {
+            messages: conversationHistory,
+            type: hasConverted ? "CONVERSION" : "INTERES"
+        };
+
+        // Navigator sendBeacon es lo más confiable para reportar al cerrar pestaña
+        if (navigator.sendBeacon) {
+            const blob = new Blob([JSON.stringify(reportData)], { type: 'application/json' });
+            navigator.sendBeacon('https://tododigital-web.onrender.com/api/report-lead', blob);
+        } else {
+            fetch('https://tododigital-web.onrender.com/api/report-lead', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reportData),
+                keepalive: true
+            });
+        }
+        reportSent = true;
+        console.log("📊 Reporte de Lead enviado al Director.");
+    };
+
+    // Reportar cuando el usuario se va o cierra la pestaña
+    window.addEventListener('beforeunload', sendLeadReport);
+    window.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') sendLeadReport();
+    });
 
     if (chatSend) chatSend.addEventListener('click', processInput);
     if (chatInput) chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') processInput(); });
