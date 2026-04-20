@@ -467,15 +467,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const sendLeadReport = () => {
-        console.log("📢 Intento de enviar reporte... status:", { reportSent, historyLength: conversationHistory.length });
-        if (reportSent || conversationHistory.length < 1) return;
+        if (reportSent || conversationHistory.length < 2) return;
         
         const reportData = {
             messages: conversationHistory,
             type: hasConverted ? "CONVERSION" : "INTERES"
         };
-
-        console.log("🚀 Enviando reporte final a Render...", reportData);
 
         // Usamos fetch con keepalive para máxima compatibilidad con CORS y estabilidad
         fetch('https://tododigital-web-ok.onrender.com/api/report-lead', {
@@ -485,10 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
             credentials: 'omit',
             keepalive: true,
             body: JSON.stringify(reportData)
-        }).then(r => {
-            console.log("📡 Resultado del reporte (Status):", r.status);
-            if(r.ok) console.log("✅ Reporte entregado con éxito.");
-        }).catch(err => console.error("❌ Error enviando reporte:", err));
+        });
         reportSent = true;
     };
 
@@ -543,19 +537,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DIGITAL CARD MODAL (Fixed Nesting) ---
     const viewCardBtn = document.getElementById('view-card');
     // --- DEBUG BUTTON (TEMP) ---
-    const debugBtn = document.createElement('button');
-    debugBtn.innerHTML = "🧪 TEST TELEGRAM";
-    debugBtn.style = "position:fixed; bottom:80px; right:20px; z-index:10000; padding:10px; background:red; color:white; border-radius:5px; cursor:pointer; font-size:10px;";
-    debugBtn.onclick = () => {
-        console.log("🧪 Iniciando test manual...");
-        reportSent = false; // Reset para poder enviar de nuevo
-        if (conversationHistory.length === 0) {
-            conversationHistory.push({ role: 'user', content: 'Prueba de sistema' });
-            conversationHistory.push({ role: 'assistant', content: 'Respuesta de prueba' });
-        }
-        sendLeadReport();
-    };
-    document.body.appendChild(debugBtn);
     const cardModal = document.getElementById('card-modal');
     const closeModal = document.querySelector('.close-modal');
     const businessCard = document.getElementById('business-card');

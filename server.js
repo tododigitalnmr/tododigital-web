@@ -102,13 +102,10 @@ app.post('/api/chat', async (req, res) => {
 });
 // --- ENDPOINT PARA REPORTE DE SESIÓN FINALIZADA ---
 app.post('/api/report-lead', async (req, res) => {
-    console.log("📥 [Debug] Solicitud de REPORTE recibida");
     try {
         const { messages, type } = req.body;
-        console.log(`📝 [Debug] Analizando ${messages ? messages.length : 0} mensajes. Tipo: ${type}`);
         
         if (!messages || messages.length < 2) {
-            console.warn("⚠️ [Debug] Conversación insuficiente para reporte.");
             return res.status(400).json({ error: "No hay suficiente conversación para reportar." });
         }
 
