@@ -467,7 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sendLeadReport = () => {
         console.log("📢 Intento de enviar reporte... status:", { reportSent, historyLength: conversationHistory.length });
-        if (reportSent || conversationHistory.length < 2) return;
+        if (reportSent || conversationHistory.length < 1) return;
         
         const reportData = {
             messages: conversationHistory,
@@ -542,6 +542,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- DIGITAL CARD MODAL (Fixed Nesting) ---
     const viewCardBtn = document.getElementById('view-card');
+    // --- DEBUG BUTTON (TEMP) ---
+    const debugBtn = document.createElement('button');
+    debugBtn.innerHTML = "🧪 TEST TELEGRAM";
+    debugBtn.style = "position:fixed; bottom:80px; right:20px; z-index:10000; padding:10px; background:red; color:white; border-radius:5px; cursor:pointer; font-size:10px;";
+    debugBtn.onclick = () => {
+        console.log("🧪 Iniciando test manual...");
+        reportSent = false; // Reset para poder enviar de nuevo
+        if (conversationHistory.length === 0) {
+            conversationHistory.push({ role: 'user', content: 'Prueba de sistema' });
+            conversationHistory.push({ role: 'assistant', content: 'Respuesta de prueba' });
+        }
+        sendLeadReport();
+    };
+    document.body.appendChild(debugBtn);
     const cardModal = document.getElementById('card-modal');
     const closeModal = document.querySelector('.close-modal');
     const businessCard = document.getElementById('business-card');

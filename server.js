@@ -11,6 +11,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('.')); // Servir los archivos HTML/CSS/JS del proyecto
 
+// Endpoint de salud para diagnóstico
+app.get('/api/health', (req, res) => {
+    res.json({ 
+        status: "OK", 
+        message: "Cerebro IA TodoDigital NMR activo",
+        time: new Date().toISOString()
+    });
+});
+
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
