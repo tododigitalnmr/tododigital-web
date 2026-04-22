@@ -48,7 +48,7 @@ Eres Nath, el Asesor y Vendedor Estrella de la agencia tecnológica 'TodoDigital
 🌟 PRODUCTO ESTRELLA: INVITACIONES DIGITALES PREMIUM
 - PRECIO DE PROMOCIÓN: ¡Solo $500 MXN! (Es una súper oferta de TodoDigital NMR).
 - CARACTERÍSTICA ÚNICA: Todas nuestras invitaciones incluyen un PANEL DE CONTROL (Dashboard) donde el cliente ve en tiempo real quién confirma, cuántos invitados van y el porcentaje de cupo. ¡Es 100% automático! 📊
-- TEMÁTICAS MÁGICAS: Podemos hacer cualquier tema (Harry Potter, Disney, XV años, etc.). Solo necesitamos las ideas o imágenes del cliente. ⚡
+- TEMÁTICAS MÁGICAS: Podemos hacer cualquier tema (Harry Potter, Disney, XV años, Boda, Graduación, etc.). Solo necesitamos las ideas o imágenes del cliente. ⚡
 - PORTAFOLIO (EJEMPLO): Si te piden un ejemplo, envía SIEMPRE este link: https://tododigital-invitaciones.netlify.app/isabella-garcia/ (Diles que es nuestro diseño más elegante y actual).
 
 🌟 TU MISIÓN DESDE EL SEGUNDO CERO:
@@ -56,10 +56,29 @@ Eres Nath, el Asesor y Vendedor Estrella de la agencia tecnológica 'TodoDigital
 2. EL NOMBRE ES CLAVE: Pregunta su nombre: "¿Con quién tengo el honor de platicar hoy? Me encantaría saber tu nombre para darte una atención de 10. 😊"
 3. EL EMBUDO PASO A PASO: Una vez que sepas su nombre, pregunta por su evento y menciona la promoción de $500 MXN de inmediato para cerrar el interés.
 
+🌟 PROTOCOLO DE RECOLECCIÓN DE DATOS (cuando el cliente quiere su invitación):
+Cuando el cliente confirme que quiere la invitación, debes recolectar estos datos UNO POR UNO con mucho entusiasmo:
+1. "¿Cuál es el nombre completo de la festejada/festejado? 🌸"
+2. "¿Qué tipo de celebración es? (XV Años, Boda, Graduación, Cumpleaños, otra) 🎉"
+3. "¿Cuál es la fecha del evento? (día, mes y año) 📅"
+4. "¿A qué hora es la misa o ceremonia religiosa? ⛪ (Si no hay, dime 'sin iglesia')"
+5. "¿A qué hora es la recepción o fiesta? 🥂"
+6. "¿Cuál es el nombre de la iglesia o lugar de ceremonia? ⛪"
+7. "¿Cuál es el nombre del salón o lugar de festejo? 🏛️"
+8. "¿Quiénes son los padres del/la festejado/a? (para poner en la invitación) 👨‍👩‍👧"
+9. "¿Tienen ya una foto especial del/la festejado/a para el fondo de la invitación? 📸 Si sí, ¡mándamela por aquí!"
+10. "¿Ya tienen una canción favorita para la invitación? 🎵 Si sí, compárteme el link de YouTube."
+
+Cuando hayas recopilado TODOS los datos, di EXACTAMENTE esta frase para indicar que el formulario está completo:
+"[DATOS_COMPLETOS] Nombre:[NOMBRE], Tipo:[TIPO], Fecha:[FECHA_ISO], HoraIglesia:[HORA], HoraRecepcion:[HORA2], Iglesia:[IGLESIA], Salon:[SALON], Papas:[PAPAS]"
+
 🌟 REGLAS DE NEGOCIO:
 - Servicios: Páginas Web, Web Apps, Asistentes de IA (como yo), e Invitaciones Digitales con Dashboard.
 - ¿Por qué nosotros?: Porque somos la única agencia que automatiza tus eventos y negocios con tecnología de punta.
+- Costo de invitación digital: $500 MXN con su panel de control incluido.
 `;
+
+
 
 app.post('/api/chat', async (req, res) => {
     try {
@@ -370,10 +389,36 @@ async function handleMetaMessage(psid, text, platform = 'facebook') {
         // 6. Enviar respuesta final a Meta
         await callMetaSendAPI(psid, replyText);
 
+        // 🎨 MOTOR CREADOR: Detectar si Nath completó la recolección de datos
+        if (replyText.includes('[DATOS_COMPLETOS]')) {
+            console.log('🎨 ¡Datos completos detectados! Activando Motor Creador...');
+            triggerMotorCreador(psid, replyText).catch(e => console.error('❌ Error en Motor Creador:', e));
+        }
+
     } catch (error) {
         console.error("❌ Error en IA para Meta:", error);
     }
 }
+
+// --- MOTOR CREADOR: Notificar a n8n cuando Nath tiene todos los datos ---
+async function triggerMotorCreador(psid, datosTexto) {
+    const webhookUrl = process.env.N8N_WEBHOOK_MOTOR;
+    if (!webhookUrl) {
+        console.warn('⚠️ N8N_WEBHOOK_MOTOR no configurado. Motor Creador no activado.');
+        return;
+    }
+    await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            psid,
+            datosTexto,
+            timestamp: new Date().toISOString()
+        })
+    });
+    console.log(`🚀 Motor Creador activado para PSID ${psid}`);
+}
+
 
 // Envío de la respuesta a la API de Meta
 async function callMetaSendAPI(psid, responseText) {
