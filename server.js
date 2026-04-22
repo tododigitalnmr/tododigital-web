@@ -311,14 +311,36 @@ async function handleMetaComment(commentId, text, platform) {
     }
 }
 
-// Función para procesar con IA y responder a Meta (con Memoria)
-async function handleMetaMessage(psid, text) {
+// --- REGISTRO DE PSID EN N8N (para el ciclo HITL) ---
+async function notifyN8nNewLead(psid, platform) {
+    const webhookUrl = process.env.N8N_WEBHOOK_PSID;
+    if (!webhookUrl) {
+        console.warn('⚠️ N8N_WEBHOOK_PSID no configurado. PSID no será guardado en CRM.');
+        return;
+    }
     try {
-        // 1. Inicializar historial si no existe para este usuario
-        if (!conversationHistory[psid]) {
+        await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ psid, platform, timestamp: new Date().toISOString() })
+        });
+        console.log(`📋 PSID ${psid} (${platform}) notificado a n8n para registro en CRM.`);
+    } catch (err) {
+        console.error('❌ Error notificando PSID a n8n:', err.message);
+    }
+}
+
+// Función para procesar con IA y responder a Meta (con Memoria)
+async function handleMetaMessage(psid, text, platform = 'facebook') {
+    try {
+        // 1. Detectar si es un nuevo lead y notificar a n8n para guardar el PSID
+        const isNewConversation = !conversationHistory[psid];
+        if (isNewConversation) {
             conversationHistory[psid] = [
                 { role: 'system', content: SYSTEM_PROMPT }
             ];
+            // 🔑 CLAVE: Guardamos el PSID en el CRM vía n8n
+            notifyN8nNewLead(psid, platform).catch(e => console.error(e));
         }
 
         // 2. Agregar el mensaje actual del usuario al historial
