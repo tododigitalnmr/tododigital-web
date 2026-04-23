@@ -400,23 +400,59 @@ async function handleMetaMessage(psid, text, platform = 'facebook') {
     }
 }
 
-// --- MOTOR CREADOR: Notificar a n8n cuando Nath tiene todos los datos ---
+// --- MOTOR CREADOR: Activar generación automática vía API v2.0 ---
 async function triggerMotorCreador(psid, datosTexto) {
-    const webhookUrl = process.env.N8N_WEBHOOK_MOTOR;
-    if (!webhookUrl) {
-        console.warn('⚠️ N8N_WEBHOOK_MOTOR no configurado. Motor Creador no activado.');
-        return;
+    const apiUrl = 'https://motor-creador-api.onrender.com/generar';
+    
+    // Extraer datos del texto de Nath usando Regex
+    function extraer(clave) {
+        const m = datosTexto.match(new RegExp(clave + ':\\[([^\\]]+)\\]'));
+        return m ? m[1].trim() : '';
     }
-    await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            psid,
-            datosTexto,
-            timestamp: new Date().toISOString()
-        })
-    });
-    console.log(`🚀 Motor Creador activado para PSID ${psid}`);
+
+    const payload = {
+        nombre: extraer('Nombre'),
+        tipo: extraer('Tipo'),
+        fecha: extraer('Fecha'),
+        iglesia: extraer('Iglesia'),
+        salon: extraer('Salon'),
+        papas: extraer('Papas'),
+        horaIglesia: extraer('HoraIglesia'),
+        horaRecepcion: extraer('HoraRecepcion'),
+        slug: (extraer('Nombre') || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')
+    };
+
+    console.log(`🚀 Enviando datos a Motor Creador API para: ${payload.nombre}`);
+
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            console.log(`✅ Invitación generada automáticamente: ${result.url}`);
+            // Notificar por Telegram
+            if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
+                const telegramUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
+                await fetch(telegramUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: process.env.TELEGRAM_CHAT_ID,
+                        text: `🎨 *MOTOR CREADOR: Invitación Lista*\n\nCliente: ${payload.nombre}\nURL: ${result.url}`,
+                        parse_mode: 'Markdown'
+                    })
+                });
+            }
+        } else {
+            throw new Error(result.error || 'Fallo desconocido en la API');
+        }
+    } catch (e) {
+        console.error('❌ Error fatal en Motor Creador:', e.message);
+    }
 }
 
 
