@@ -434,16 +434,28 @@ async function triggerMotorCreador(psid, datosTexto) {
         
         if (result.success) {
             console.log(`✅ Invitación generada automáticamente: ${result.url}`);
-            // Notificar por Telegram
-            if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
-                const telegramUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
+            
+            // Notificar por Telegram con Botones (HITL)
+            const tgToken = process.env.TELEGRAM_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
+            const chatId = process.env.TELEGRAM_CHAT_ID;
+
+            if (tgToken && chatId) {
+                const telegramUrl = `https://api.telegram.org/bot${tgToken}/sendMessage`;
                 await fetch(telegramUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        chat_id: process.env.TELEGRAM_CHAT_ID,
-                        text: `🎨 *MOTOR CREADOR: Invitación Lista*\n\nCliente: ${payload.nombre}\nURL: ${result.url}`,
-                        parse_mode: 'Markdown'
+                        chat_id: chatId,
+                        text: `🎨 *MOTOR CREADOR: Invitación Lista*\n\n*Cliente:* ${payload.nombre}\n*URL:* ${result.url}\n\n¿Deseas autorizar el envío oficial al cliente?`,
+                        parse_mode: 'Markdown',
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    { text: "✅ Autorizar y Enviar", callback_data: `auth_send_${payload.slug}` },
+                                    { text: "❌ Rechazar", callback_data: `reject_${payload.slug}` }
+                                ]
+                            ]
+                        }
                     })
                 });
             }
