@@ -5,26 +5,38 @@ const { google } = require('googleapis');
 const CREDENTIALS_PATH = path.join(__dirname, 'credentials.json');
 const TOKEN_PATH = path.join(__dirname, 'token.json');
 
+const SERVICE_ACCOUNT_PATH = path.join(__dirname, 'service-account.json');
+
 async function getAuthClient() {
-    if (!fs.existsSync(CREDENTIALS_PATH) || !fs.existsSync(TOKEN_PATH)) {
-        throw new Error('Faltan archivos de credenciales de Google (credentials.json o token.json)');
+    let credentials;
+
+    // 1. Intentar cargar Cuenta de Servicio desde variable de entorno (Prioridad Render)
+    if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+        try {
+            credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+        } catch (e) {
+            console.error('❌ Error parseando GOOGLE_SERVICE_ACCOUNT_JSON:', e.message);
+        }
     }
 
-    const credentials = JSON.parse(fs.readFileSync(CREDENTIALS_PATH));
-    const { client_secret, client_id, redirect_uris } = credentials.installed || credentials.web;
-    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
-
-    const token = JSON.parse(fs.readFileSync(TOKEN_PATH));
-    oAuth2Client.setCredentials(token);
-    
-    // Verificar si tiene el scope de calendario
-    const scopes = token.scopes || [];
-    if (!scopes.some(s => s.includes('calendar'))) {
-        console.warn('⚠️ ADVERTENCIA: El token actual NO tiene permisos de Calendario. Solo tiene:', scopes);
-        // Aquí podríamos generar una URL de autorización si fuera necesario
+    // 2. Fallback a archivo local service-account.json
+    if (!credentials && fs.existsSync(SERVICE_ACCOUNT_PATH)) {
+        credentials = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_PATH));
     }
 
-    return oAuth2Client;
+    if (credentials && credentials.type === 'service_account') {
+        return new google.auth.JWT(
+            credentials.client_email,
+            null,
+            credentials.private_key,
+            ['https://www.googleapis.com/auth/calendar.events', 'https://www.googleapis.com/auth/calendar.readonly'],
+            'tododigitalnmr@gmail.com' // Suplantar al usuario dueño del calendario
+        );
+    }
+
+    // 3. Fallback antiguo (OAuth2) si no hay cuenta de servicio
+    // [Se mantiene por compatibilidad si fuera necesario, pero la cuenta de servicio es preferida]
+    throw new Error('Faltan credenciales de Cuenta de Servicio (service-account.json)');
 }
 
 /**
