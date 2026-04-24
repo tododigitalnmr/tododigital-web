@@ -46,7 +46,15 @@ function addLead(data) {
 }
 
 // Rutas CRM
-app.get('/crm', (req, res) => res.sendFile(path.join(__dirname, 'crm.html')));
+app.get('/crm', (req, res) => {
+    try {
+        const html = fs.readFileSync(path.join(__dirname, 'crm.html'), 'utf8');
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.send(html);
+    } catch(e) {
+        res.status(500).send(`<h1>Error cargando CRM: ${e.message}</h1><p>Directorio: ${__dirname}</p>`);
+    }
+});
 
 app.get('/api/leads', (req, res) => res.json(loadLeads()));
 
