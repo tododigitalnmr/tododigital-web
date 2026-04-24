@@ -96,7 +96,7 @@ app.post('/api/chat', async (req, res) => {
 
         // Llamada oficial a OpenAI
         const completion = await openai.chat.completions.create({
-            model: "gpt-4o-mini", // Usaremos la versión más rápida y económica por defecto
+            model: "gpt-4o-mini",
             messages: apiMessages,
             temperature: 0.7,
             max_tokens: 350
@@ -104,19 +104,21 @@ app.post('/api/chat', async (req, res) => {
 
         const replyText = completion.choices[0].message.content;
 
-        // ---- LEAD CAPTURE MAGIC: Intercept enlace Calendly ----
+        // ---- LEAD CAPTURE: Intercept enlace Calendly ----
         if (replyText.includes("calendly.com")) {
-            console.log("🔥 ¡Cierre de venta detectado! Guardando Lead y enviando correo...");
-            
-            // Construir resumen de la conversión
+            console.log("🔥 ¡Cierre de venta detectado! Guardando Lead...");
             let convoSummary = messages.concat({ role: 'assistant', content: replyText })
                 .map(m => `<b>${m.role === 'user' ? '👤 Prospecto' : '🤖 IA'}:</b> ${m.content}`)
                 .join("\n\n");
-            
             sendLeadReportToDirector(convoSummary, "CONVERSION");
         }
-        // --------------------------------------------------------
-        // --------------------------------------------------------
+
+        // 🎨 MOTOR CREADOR: Detectar datos completos desde el chat WEB
+        if (replyText.includes('[DATOS_COMPLETOS]')) {
+            console.log('🎨 [WEB CHAT] ¡Datos completos detectados! Activando Motor Creador...');
+            triggerMotorCreador('web-chat-' + Date.now(), replyText)
+                .catch(e => console.error('❌ Error en Motor Creador (web):', e));
+        }
 
         res.json({ reply: replyText });
     } catch (error) {
