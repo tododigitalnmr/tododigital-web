@@ -564,45 +564,58 @@ async function handleMetaMessage(psid, text, platform = 'facebook') {
 // --- MOTOR CREADOR: Activar generación automática vía API v2.0 ---
 // ─── HANDLER: CITA AGENDADA ──────────────────────────────────────────────────
 async function handleCitaAgendada(datosTexto) {
+    // Parser robusto: acepta CON o SIN corchetes
     function extraer(clave) {
-        const m = datosTexto.match(new RegExp(clave + ':\\s*\\[([^\\]]+)\\]'));
-        return m ? m[1].trim() : '';
+        // Formato 1: Clave:[valor con corchetes]
+        let m = datosTexto.match(new RegExp(clave + ':\\s*\\[([^\\]]+)\\]'));
+        if (m) return m[1].trim();
+        // Formato 2: Clave:valor|siguiente (sin corchetes, separado por pipe)
+        m = datosTexto.match(new RegExp(clave + ':\\s*([^|\\n\\r\\[]+)'));
+        if (m) return m[1].trim();
+        return '';
     }
+
+    console.log('📅 [CITA] Texto completo recibido:', datosTexto.substring(0, 400));
+
     const cita = {
-        nombre: extraer('Nombre'),
+        nombre:   extraer('Nombre'),
         servicio: extraer('Servicio'),
-        dia: extraer('Dia'),
-        hora: extraer('Hora'),
+        dia:      extraer('Dia'),
+        hora:     extraer('Hora'),
         whatsapp: extraer('Whatsapp'),
-        canal: 'web-chat'
     };
-    console.log(`📅 Cita agendada: ${cita.nombre} - ${cita.dia} ${cita.hora}`);
+    console.log('📅 [CITA] Datos extraídos:', JSON.stringify(cita));
 
     // 💾 Guardar en CRM
     addLead({
-        nombre: cita.nombre || 'Cliente Web',
-        tipo: `📅 CITA: ${cita.servicio}`,
-        whatsapp: cita.whatsapp,
-        salon: `${cita.dia} a las ${cita.hora}`,
-        canal: 'web-chat',
-        status: 'cita'
+        nombre:   cita.nombre   || 'Cliente Web',
+        tipo:     `📅 CITA: ${cita.servicio || 'Consulta'}`,
+        whatsapp: cita.whatsapp || null,
+        salon:    `${cita.dia || '?'} a las ${cita.hora || '?'}`,
+        canal:    'web-chat',
+        status:   'cita'
     });
 
-    // 📅 Generar link de Google Calendar
-    const title = encodeURIComponent(`Consulta TodoDigital - ${cita.nombre}`);
+    // 📅 Generar link de Google Calendar (pre-llenado, un clic para guardar)
+    const title   = encodeURIComponent(`Consulta TodoDigital - ${cita.nombre || 'Cliente'}`);
     const details = encodeURIComponent(`Cliente: ${cita.nombre}\nServicio: ${cita.servicio}\nWhatsApp: ${cita.whatsapp}`);
-    const calendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=Online+TodoDigital+NMR`;
+    const calendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=Online+%E2%80%94+TodoDigital+NMR`;
 
     // 📲 Notificar por Telegram
     const tgToken = process.env.TELEGRAM_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.TELEGRAM_CHAT_ID;
+    const chatId  = process.env.TELEGRAM_CHAT_ID;
     if (tgToken && chatId) {
+        const nombreDisplay   = cita.nombre   || '—';
+        const servicioDisplay = cita.servicio || '—';
+        const diaDisplay      = cita.dia      || '—';
+        const horaDisplay     = cita.hora     || '—';
+        const waDisplay       = cita.whatsapp || '—';
         await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 chat_id: chatId,
-                text: `📅 *NUEVA CITA AGENDADA*\n\n👤 *Cliente:* ${cita.nombre}\n💼 *Servicio:* ${cita.servicio}\n🗓 *Día:* ${cita.dia}\n🕐 *Hora:* ${cita.hora}\n📱 *WhatsApp:* ${cita.whatsapp}\n\n👆 Presiona para agregar al calendario:`,
+                text: `📅 *NUEVA CITA AGENDADA*\n\n👤 *Cliente:* ${nombreDisplay}\n💼 *Servicio:* ${servicioDisplay}\n🗓 *Día:* ${diaDisplay}\n🕐 *Hora:* ${horaDisplay}\n📱 *WhatsApp:* ${waDisplay}\n\n👇 Presiona para agregar al calendario:`,
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [[
@@ -610,7 +623,7 @@ async function handleCitaAgendada(datosTexto) {
                     ]]
                 }
             })
-        }).catch(() => {});
+        }).catch(e => console.error('❌ Telegram error:', e.message));
     }
 }
 
