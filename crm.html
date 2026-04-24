@@ -230,7 +230,6 @@ async function loadLeads() {
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
     
     const r = await fetch('/api/leads', { 
-      credentials: 'include',
       signal: controller.signal 
     });
     clearTimeout(timeoutId);

@@ -582,7 +582,7 @@ const reportedSessions = new Set(); // Para evitar duplicados en la misma sesió
 
 async function handleCitaAgendada(datosTexto, psid = null) {
     if (psid) reportedSessions.add(psid);
-    // ... resto de la función se mantiene igual ...
+    
     // Parser ultra-robusto: busca por palabra clave sin importar el formato exacto
     function extraer(claves) {
         for (const clave of claves) {
