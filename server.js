@@ -155,7 +155,7 @@ Recolecta los siguientes datos UNO POR UNO. Solo pregunta lo que aún no sabes:
 6. Nombre de la iglesia o lugar de ceremonia ⛪
 7. Nombre del salón o lugar de festejo 🏛️
 8. Nombre de los padres 👨‍👩‍👧
-9. Foto de la festejada: "¿Tienes una foto especial de ${nombre}? Si sí, compárteme el link de Google Drive, iCloud o nos la puedes mandar directo por WhatsApp 📸. Si no, usamos una imagen elegante de nuestro banco de diseño."
+9. Foto de la festejada: "¿Tienes una foto especial de la festejada? Si sí, compárteme el link de Google Drive, iCloud o nos la puedes mandar directo por WhatsApp 📸. Si no, usamos una imagen elegante de nuestro banco de diseño."
 10. Canción: "¿Tienen una canción favorita? Si sí, compárteme el link de YouTube 🎵. Si no, nosotros elegimos una preciosa para su estilo."
 11. WhatsApp de contacto 📱 (con código de país, ej: +52 899 134 6198)
 
