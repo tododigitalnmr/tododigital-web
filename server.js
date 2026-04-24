@@ -13,7 +13,7 @@ app.use(cors({
     credentials: false
 }));
 app.use(express.json());
-app.use(express.static('.')); // Servir los archivos HTML/CSS/JS del proyecto
+// Nota: express.static se registra al final para que las rutas explícitas tengan prioridad
 
 // Endpoint de salud para diagnóstico
 app.get('/api/health', (req, res) => {
