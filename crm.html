@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CRM | TodoDigital NMR</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#07070f;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--accent:#8B5CF6;--accent2:#EC4899;--text:#e2e8f0;--muted:#94a3b8;--green:#10b981;--yellow:#f59e0b;--red:#ef4444}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(139,92,246,0.15) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(236,72,153,0.1) 0%,transparent 50%);pointer-events:none;z-index:0}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:40px;width:90%;max-width:380px;backdrop-filter:blur(20px);text-align:center}
+.login-logo{font-size:2.5rem;margin-bottom:8px}
+.login-box h1{font-size:1.4rem;font-weight:700;margin-bottom:4px;background:linear-gradient(135deg,#8B5CF6,#EC4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.login-box p{color:var(--muted);font-size:.85rem;margin-bottom:28px}
+.pin-inputs{display:flex;gap:10px;justify-content:center;margin-bottom:24px}
+.pin-input{width:52px;height:60px;background:rgba(255,255,255,0.06);border:2px solid var(--border);border-radius:12px;color:var(--text);font-size:1.6rem;text-align:center;font-weight:700;outline:none;transition:.2s}
+.pin-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,92,246,0.2)}
+.btn-login{width:100%;padding:14px;background:linear-gradient(135deg,#8B5CF6,#EC4899);border:none;border-radius:12px;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;transition:.2s}
+.btn-login:hover{opacity:.9;transform:translateY(-1px)}
+.login-error{color:var(--red);font-size:.8rem;margin-top:10px;display:none}
+
+/* MAIN APP */
+#app{display:none;min-height:100vh}
+.header{position:sticky;top:0;z-index:50;background:rgba(7,7,15,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.header-left{display:flex;align-items:center;gap:12px}
+.header-logo{font-size:1.3rem}
+.header-title{font-size:1rem;font-weight:700;background:linear-gradient(135deg,#8B5CF6,#EC4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header-sub{font-size:.72rem;color:var(--muted)}
+.btn-logout{background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.8rem;transition:.2s}
+.btn-logout:hover{color:var(--text);border-color:rgba(255,255,255,0.2)}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:20px 16px 8px}
+@media(min-width:640px){.stats-grid{grid-template-columns:repeat(4,1fr);padding:20px 24px 8px}}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;backdrop-filter:blur(10px)}
+.stat-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.stat-value{font-size:1.8rem;font-weight:700}
+.stat-total{color:var(--text)}
+.stat-pending{color:var(--yellow)}
+.stat-auth{color:var(--green)}
+.stat-rejected{color:var(--red)}
+
+/* FILTERS */
+.filters{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.filter-btn{padding:7px 18px;border-radius:30px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.82rem;cursor:pointer;white-space:nowrap;transition:.2s;font-family:inherit}
+.filter-btn.active{background:linear-gradient(135deg,#8B5CF6,#EC4899);border-color:transparent;color:#fff;font-weight:600}
+.filter-btn:hover:not(.active){border-color:rgba(255,255,255,0.2);color:var(--text)}
+
+/* SEARCH */
+.search-wrap{padding:0 16px 12px}
+.search-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 16px;color:var(--text);font-size:.9rem;outline:none;font-family:inherit;transition:.2s}
+.search-input:focus{border-color:rgba(139,92,246,0.5);box-shadow:0 0 0 3px rgba(139,92,246,0.1)}
+.search-input::placeholder{color:var(--muted)}
+
+/* LEADS */
+.leads-container{padding:0 16px 100px;display:flex;flex-direction:column;gap:12px}
+.lead-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;backdrop-filter:blur(10px);transition:.2s;position:relative;overflow:hidden}
+.lead-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#8B5CF6,#EC4899)}
+.lead-card[data-status="autorizado"]::before{background:var(--green)}
+.lead-card[data-status="rechazado"]::before{background:var(--red);opacity:.6}
+.lead-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.lead-avatar{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#8B5CF6,#EC4899);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;color:#fff;flex-shrink:0}
+.lead-name{font-size:1rem;font-weight:600;color:var(--text)}
+.lead-event{font-size:.78rem;color:var(--muted);margin-top:2px}
+.status-badge{margin-left:auto;padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.badge-pendiente{background:rgba(245,158,11,0.15);color:var(--yellow);border:1px solid rgba(245,158,11,0.3)}
+.badge-autorizado{background:rgba(16,185,129,0.15);color:var(--green);border:1px solid rgba(16,185,129,0.3)}
+.badge-rechazado{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2)}
+
+.lead-details{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.detail-item{background:rgba(255,255,255,0.03);border-radius:8px;padding:8px 10px}
+.detail-label{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.detail-value{font-size:.8rem;color:var(--text);font-weight:500}
+
+.lead-actions{display:flex;gap:8px;flex-wrap:wrap}
+.action-btn{flex:1;min-width:90px;padding:9px 12px;border-radius:10px;border:none;cursor:pointer;font-size:.78rem;font-weight:600;font-family:inherit;transition:.2s;display:flex;align-items:center;justify-content:center;gap:5px;text-decoration:none}
+.btn-view{background:rgba(139,92,246,0.15);color:#a78bfa;border:1px solid rgba(139,92,246,0.3)}
+.btn-view:hover{background:rgba(139,92,246,0.25)}
+.btn-wa{background:rgba(37,211,102,0.12);color:#4ade80;border:1px solid rgba(37,211,102,0.25)}
+.btn-wa:hover{background:rgba(37,211,102,0.2)}
+.btn-auth{background:rgba(16,185,129,0.12);color:var(--green);border:1px solid rgba(16,185,129,0.25)}
+.btn-auth:hover{background:rgba(16,185,129,0.22)}
+.btn-reject{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2)}
+.btn-reject:hover{background:rgba(239,68,68,0.18)}
+
+.lead-time{font-size:.7rem;color:var(--muted);margin-top:10px;text-align:right}
+
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:3rem;margin-bottom:12px;opacity:.5}
+
+/* LOADING */
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:.9rem}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:rgba(16,185,129,0.9);color:#fff;padding:12px 24px;border-radius:12px;font-size:.85rem;font-weight:600;z-index:200;transition:.3s;opacity:0}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.error{background:rgba(239,68,68,0.9)}
+
+/* REFRESH BTN */
+.refresh-row{display:flex;align-items:center;justify-content:space-between;padding:4px 16px 12px}
+.refresh-info{font-size:.72rem;color:var(--muted)}
+.btn-refresh{background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.75rem;font-family:inherit;transition:.2s}
+.btn-refresh:hover{color:var(--text)}
+.live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:5px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">🚀</div>
+    <h1>TodoDigital NMR</h1>
+    <p>Panel de Control · Leads CRM</p>
+    <div class="pin-inputs">
+      <input class="pin-input" type="password" maxlength="1" inputmode="numeric" id="p1">
+      <input class="pin-input" type="password" maxlength="1" inputmode="numeric" id="p2">
+      <input class="pin-input" type="password" maxlength="1" inputmode="numeric" id="p3">
+      <input class="pin-input" type="password" maxlength="1" inputmode="numeric" id="p4">
+    </div>
+    <button class="btn-login" onclick="checkPin()">Ingresar →</button>
+    <div class="login-error" id="login-error">PIN incorrecto. Intenta de nuevo.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="header">
+    <div class="header-left">
+      <span class="header-logo">📊</span>
+      <div>
+        <div class="header-title">CRM Leads</div>
+        <div class="header-sub">TodoDigital NMR</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="logout()">Salir</button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Total Leads</div><div class="stat-value stat-total" id="s-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">Pendientes</div><div class="stat-value stat-pending" id="s-pending">0</div></div>
+    <div class="stat-card"><div class="stat-label">Autorizados</div><div class="stat-value stat-auth" id="s-auth">0</div></div>
+    <div class="stat-card"><div class="stat-label">Rechazados</div><div class="stat-value stat-rejected" id="s-rejected">0</div></div>
+  </div>
+
+  <div class="refresh-row">
+    <span class="refresh-info"><span class="live-dot"></span>Auto-actualiza cada 30s</span>
+    <button class="btn-refresh" onclick="loadLeads()">↻ Actualizar</button>
+  </div>
+
+  <div class="search-wrap">
+    <input class="search-input" type="text" id="search" placeholder="🔍 Buscar por nombre, evento o salón..." oninput="renderLeads()">
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
+    <button class="filter-btn" onclick="setFilter('pendiente',this)">Pendientes</button>
+    <button class="filter-btn" onclick="setFilter('autorizado',this)">Autorizados</button>
+    <button class="filter-btn" onclick="setFilter('rechazado',this)">Rechazados</button>
+  </div>
+
+  <div class="leads-container" id="leads-list">
+    <div class="loading">Cargando leads... ⏳</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PIN = '1234'; // Cambiar aquí o usar el del env
+let allLeads = [];
+let currentFilter = 'todos';
+
+// ─── PIN LOGIN ────────────────────────────────────────────────────────────────
+const pinInputs = [document.getElementById('p1'),document.getElementById('p2'),document.getElementById('p3'),document.getElementById('p4')];
+pinInputs.forEach((input, i) => {
+  input.addEventListener('input', () => {
+    if (input.value && i < 3) pinInputs[i+1].focus();
+    if (i === 3 && input.value) checkPin();
+  });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !input.value && i > 0) pinInputs[i-1].focus();
+  });
+});
+
+function checkPin() {
+  const entered = pinInputs.map(i => i.value).join('');
+  if (entered === PIN || entered === (window._crmPin || PIN)) {
+    localStorage.setItem('crm_auth', '1');
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadLeads();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    pinInputs.forEach(i => i.value = '');
+    pinInputs[0].focus();
+  }
+}
+
+function logout() {
+  localStorage.removeItem('crm_auth');
+  location.reload();
+}
+
+if (localStorage.getItem('crm_auth') === '1') {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadLeads();
+} else {
+  pinInputs[0].focus();
+}
+
+// ─── LOAD LEADS ───────────────────────────────────────────────────────────────
+async function loadLeads() {
+  try {
+    const r = await fetch('/api/leads', { credentials: 'include' });
+    if (r.status === 401) { logout(); return; }
+    allLeads = await r.json();
+    updateStats();
+    renderLeads();
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function updateStats() {
+  document.getElementById('s-total').textContent = allLeads.length;
+  document.getElementById('s-pending').textContent = allLeads.filter(l=>l.status==='pendiente').length;
+  document.getElementById('s-auth').textContent = allLeads.filter(l=>l.status==='autorizado').length;
+  document.getElementById('s-rejected').textContent = allLeads.filter(l=>l.status==='rechazado').length;
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLeads();
+}
+
+function renderLeads() {
+  const search = document.getElementById('search').value.toLowerCase();
+  let leads = allLeads;
+  if (currentFilter !== 'todos') leads = leads.filter(l => l.status === currentFilter);
+  if (search) leads = leads.filter(l =>
+    (l.nombre||'').toLowerCase().includes(search) ||
+    (l.tipo||'').toLowerCase().includes(search) ||
+    (l.salon||'').toLowerCase().includes(search)
+  );
+
+  const container = document.getElementById('leads-list');
+  if (!leads.length) {
+    container.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><div>No hay leads en esta categoría</div></div>`;
+    return;
+  }
+
+  container.innerHTML = leads.map(lead => {
+    const initials = (lead.nombre||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const dateStr = lead.createdAt ? new Date(lead.createdAt).toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+    const eventDate = lead.fecha ? new Date(lead.fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'}) : '';
+    const wa = (lead.whatsapp||'').replace(/[^0-9]/g,'');
+    const invUrl = lead.invitacionUrl || '#';
+    const statusLabel = {pendiente:'Pendiente',autorizado:'Autorizado',rechazado:'Rechazado'}[lead.status]||lead.status;
+    const badgeClass = {pendiente:'badge-pendiente',autorizado:'badge-autorizado',rechazado:'badge-rechazado'}[lead.status]||'badge-pendiente';
+
+    return `<div class="lead-card" data-status="${lead.status}" data-id="${lead.id}">
+      <div class="lead-header">
+        <div class="lead-avatar">${initials}</div>
+        <div>
+          <div class="lead-name">${lead.nombre||'Sin nombre'}</div>
+          <div class="lead-event">${lead.tipo||''} ${lead.fecha?'· '+eventDate:''}</div>
+        </div>
+        <span class="status-badge ${badgeClass}">${statusLabel}</span>
+      </div>
+      <div class="lead-details">
+        <div class="detail-item"><div class="detail-label">Salón</div><div class="detail-value">${lead.salon||'—'}</div></div>
+        <div class="detail-item"><div class="detail-label">WhatsApp</div><div class="detail-value">${lead.whatsapp||'—'}</div></div>
+        <div class="detail-item"><div class="detail-label">Iglesia</div><div class="detail-value">${lead.iglesia||'—'}</div></div>
+        <div class="detail-item"><div class="detail-label">Canal</div><div class="detail-value">${lead.canal||'web'}</div></div>
+      </div>
+      <div class="lead-actions">
+        ${invUrl!=='#'?`<a class="action-btn btn-view" href="${invUrl}" target="_blank">👁️ Ver Invitación</a>`:''}
+        ${wa?`<a class="action-btn btn-wa" href="https://wa.me/${wa}?text=Hola%20${encodeURIComponent(lead.nombre||'')}%2C%20tu%20invitaci%C3%B3n%20est%C3%A1%20lista%3A%20${encodeURIComponent(invUrl)}" target="_blank">💬 WhatsApp</a>`:''}
+        ${lead.status==='pendiente'?`<button class="action-btn btn-auth" onclick="updateStatus('${lead.id}','autorizado')">✅ Autorizar</button><button class="action-btn btn-reject" onclick="updateStatus('${lead.id}','rechazado')">❌ Rechazar</button>`:''}
+      </div>
+      <div class="lead-time">🕐 ${dateStr}</div>
+    </div>`;
+  }).join('');
+}
+
+async function updateStatus(id, status) {
+  try {
+    const r = await fetch(`/api/leads/${id}`, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({status})
+    });
+    if (r.ok) {
+      const lead = allLeads.find(l=>l.id===id);
+      if (lead) lead.status = status;
+      updateStats();
+      renderLeads();
+      showToast(status==='autorizado' ? '✅ Lead autorizado' : '❌ Lead rechazado', status==='rechazado');
+    }
+  } catch(e) { showToast('Error al actualizar', true); }
+}
+
+function showToast(msg, isError=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError?' error':'');
+  setTimeout(()=>t.classList.add('show'),10);
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// Auto-refresh cada 30 segundos
+setInterval(loadLeads, 30000);
+</script>
+</body>
+</html>

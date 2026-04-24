@@ -1,5 +1,6 @@
 const express = require('express');
 const https = require('https');
+const fs = require('fs');
 const cors = require('cors');
 const path = require('path');
 const nodemailer = require('nodemailer');
@@ -26,6 +27,85 @@ app.get('/api/health', (req, res) => {
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
+
+// ─── LEADS CRM DATABASE ───────────────────────────────────────────────────────
+const LEADS_FILE = path.join(__dirname, 'leads.json');
+
+function loadLeads() {
+    try { return JSON.parse(fs.readFileSync(LEADS_FILE, 'utf8')); } catch { return []; }
+}
+function saveLeads(leads) {
+    try { fs.writeFileSync(LEADS_FILE, JSON.stringify(leads, null, 2)); } catch(e) { console.error('Error saving leads:', e.message); }
+}
+function addLead(data) {
+    const leads = loadLeads();
+    const lead = { id: Date.now().toString(), ...data, status: 'pendiente', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    leads.unshift(lead);
+    saveLeads(leads);
+    return lead;
+}
+
+// Rutas CRM
+app.get('/crm', (req, res) => res.sendFile(path.join(__dirname, 'crm.html')));
+
+app.get('/api/leads', (req, res) => res.json(loadLeads()));
+
+app.patch('/api/leads/:id', (req, res) => {
+    const leads = loadLeads();
+    const lead = leads.find(l => l.id === req.params.id);
+    if (!lead) return res.status(404).json({ error: 'Lead no encontrado' });
+    lead.status = req.body.status || lead.status;
+    lead.updatedAt = new Date().toISOString();
+    saveLeads(leads);
+    res.json(lead);
+});
+
+// Webhook de Telegram (botones Autorizar/Rechazar)
+app.post('/telegram-webhook', async (req, res) => {
+    res.sendStatus(200);
+    const cb = req.body?.callback_query;
+    if (!cb) return;
+    const tgToken = process.env.TELEGRAM_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
+    // Responder al callback para quitar el loading del botón
+    await fetch(`https://api.telegram.org/bot${tgToken}/answerCallbackQuery`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ callback_query_id: cb.id })
+    }).catch(() => {});
+    const data = cb.data || '';
+    const slug = data.replace(/^(auth_send_|reject_)/, '');
+    const leads = loadLeads();
+    const lead = leads.find(l => l.slug === slug);
+    if (!lead) return;
+    if (data.startsWith('auth_send_')) {
+        lead.status = 'autorizado';
+    } else if (data.startsWith('reject_')) {
+        lead.status = 'rechazado';
+    }
+    lead.updatedAt = new Date().toISOString();
+    saveLeads(leads);
+    console.log(`📝 Lead ${slug} marcado como ${lead.status} vía Telegram`);
+    // Editar el mensaje en Telegram para confirmar
+    const newText = lead.status === 'autorizado'
+        ? `✅ *AUTORIZADO* \n\n*Cliente:* ${lead.nombre}\n*Invitación:* ${lead.invitacionUrl || ''}\n*WhatsApp:* ${lead.whatsapp || ''}`
+        : `❌ *RECHAZADO* \n\n*Cliente:* ${lead.nombre}`;
+    await fetch(`https://api.telegram.org/bot${tgToken}/editMessageText`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ chat_id: cb.message.chat.id, message_id: cb.message.message_id, text: newText, parse_mode: 'Markdown' })
+    }).catch(() => {});
+});
+
+// Registrar el webhook de Telegram al iniciar
+async function registerTelegramWebhook() {
+    const tgToken = process.env.TELEGRAM_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
+    const serverUrl = process.env.SERVER_URL || 'https://tododigital-web-ok.onrender.com';
+    if (!tgToken) return;
+    const r = await fetch(`https://api.telegram.org/bot${tgToken}/setWebhook`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ url: `${serverUrl}/telegram-webhook`, allowed_updates: ['callback_query', 'message'] })
+    });
+    const j = await r.json();
+    console.log('📲 Telegram Webhook:', j.ok ? '✅ Registrado' : '❌ ' + j.description);
+}
 
 // Verificamos si existe la API Key
 if (!process.env.OPENAI_API_KEY) {
@@ -446,6 +526,22 @@ async function triggerMotorCreador(psid, datosTexto) {
         if (result.success) {
             console.log(`✅ Invitación generada automáticamente: ${result.url}`);
             
+            // 💾 Guardar lead en el CRM
+            addLead({
+                nombre: payload.nombre,
+                tipo: payload.tipo,
+                fecha: payload.fecha,
+                iglesia: payload.iglesia,
+                salon: payload.salon,
+                papas: payload.papas,
+                horaIglesia: payload.horaIglesia,
+                horaRecepcion: payload.horaRecepcion,
+                whatsapp: payload.whatsapp,
+                slug: payload.slug,
+                invitacionUrl: result.url,
+                canal: psid.startsWith('web-chat') ? 'web-chat' : 'facebook'
+            });
+            console.log(`📊 Lead guardado en CRM: ${payload.nombre}`);
             // Notificar por Telegram con Botones (HITL)
             const tgToken = process.env.TELEGRAM_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
             const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -541,15 +637,14 @@ async function callMetaCommentReplyAPI(commentId, responseText, platform) {
 }
 
 
-
 app.use(express.static(__dirname));
 
 app.get('/', (req, res) => {
       res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Servir archivos est
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Servidor de Inteligencia Artificial activo en http://localhost:${PORT}`);
+    registerTelegramWebhook(); // Registrar webhook de Telegram al iniciar
 });
