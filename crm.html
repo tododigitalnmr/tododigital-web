@@ -224,14 +224,26 @@ if (localStorage.getItem('crm_auth') === '1') {
 
 // ─── LOAD LEADS ───────────────────────────────────────────────────────────────
 async function loadLeads() {
+  const container = document.getElementById('leads-list');
   try {
-    const r = await fetch('/api/leads', { credentials: 'include' });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    
+    const r = await fetch('/api/leads', { 
+      credentials: 'include',
+      signal: controller.signal 
+    });
+    clearTimeout(timeoutId);
+
     if (r.status === 401) { logout(); return; }
+    if (!r.ok) throw new Error('Error en servidor');
+
     allLeads = await r.json();
     updateStats();
     renderLeads();
   } catch(e) {
     console.error(e);
+    container.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div>Error al conectar con el servidor. Revisa tu conexión.</div><button class="btn-refresh" onclick="loadLeads()" style="margin-top:15px">Reintentar</button></div>`;
   }
 }
 

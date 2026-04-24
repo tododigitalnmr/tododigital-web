@@ -40,7 +40,14 @@ function saveLeads(leads) {
 }
 function addLead(data) {
     const leads = loadLeads();
-    const lead = { id: Date.now().toString(), ...data, status: 'pendiente', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    // Priorizamos el status que venga en data (ej: 'cita' o 'prospecto')
+    const lead = { 
+        id: Date.now().toString(), 
+        status: 'pendiente', 
+        ...data, 
+        createdAt: new Date().toISOString(), 
+        updatedAt: new Date().toISOString() 
+    };
     leads.unshift(lead);
     saveLeads(leads);
     return lead;
@@ -244,7 +251,8 @@ app.post('/api/chat', async (req, res) => {
         // 📅 CITA AGENDADA: Detectar cita confirmada
         if (replyText.includes('[CITA_AGENDADA]')) {
             console.log('📅 [WEB CHAT] ¡Cita agendada! Procesando...');
-            handleCitaAgendada(replyText).catch(e => console.error('❌ Error en cita:', e));
+            const psid = req.body.psid || 'web-user';
+            handleCitaAgendada(replyText, psid).catch(e => console.error('❌ Error en cita:', e));
         }
 
         // 🎨 MOTOR CREADOR: Detectar datos completos desde el chat WEB
@@ -263,7 +271,13 @@ app.post('/api/chat', async (req, res) => {
 // --- ENDPOINT PARA REPORTE DE SESIÓN FINALIZADA ---
 app.post('/api/report-lead', async (req, res) => {
     try {
-        const { messages, type } = req.body;
+        const { messages, type, psid } = req.body;
+        
+        // Evitar duplicado si ya se reportó como cita en esta sesión
+        if (psid && reportedSessions.has(psid)) {
+            console.log(`🚫 Reporte de prospecto omitido para ${psid} (ya es CITA)`);
+            return res.json({ success: true, status: 'already_reported' });
+        }
         
         if (!messages || messages.length < 2) {
             return res.status(400).json({ error: "No hay suficiente conversación para reportar." });
@@ -564,7 +578,11 @@ async function handleMetaMessage(psid, text, platform = 'facebook') {
 
 // --- MOTOR CREADOR: Activar generación automática vía API v2.0 ---
 // ─── HANDLER: CITA AGENDADA ──────────────────────────────────────────────────
-async function handleCitaAgendada(datosTexto) {
+const reportedSessions = new Set(); // Para evitar duplicados en la misma sesión
+
+async function handleCitaAgendada(datosTexto, psid = null) {
+    if (psid) reportedSessions.add(psid);
+    // ... resto de la función se mantiene igual ...
     // Parser ultra-robusto: busca por palabra clave sin importar el formato exacto
     function extraer(claves) {
         for (const clave of claves) {
