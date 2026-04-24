@@ -263,7 +263,14 @@ function setFilter(f, btn) {
 function renderLeads() {
   const search = document.getElementById('search').value.toLowerCase();
   let leads = allLeads;
-  if (currentFilter !== 'todos') leads = leads.filter(l => l.status === currentFilter);
+  
+  if (currentFilter === 'cita') {
+    // Para la pestaña de citas, mostramos todo lo que sea una cita (por status o por tipo)
+    leads = leads.filter(l => l.status === 'cita' || (l.tipo && l.tipo.includes('CITA')));
+  } else if (currentFilter !== 'todos') {
+    leads = leads.filter(l => l.status === currentFilter);
+  }
+
   if (search) leads = leads.filter(l =>
     (l.nombre||'').toLowerCase().includes(search) ||
     (l.tipo||'').toLowerCase().includes(search) ||
@@ -277,6 +284,7 @@ function renderLeads() {
   }
 
   container.innerHTML = leads.map(lead => {
+    const isCita = lead.status === 'cita' || (lead.tipo && lead.tipo.includes('CITA'));
     const initials = (lead.nombre||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     const dateStr = lead.createdAt ? new Date(lead.createdAt).toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
     const eventDate = lead.fecha ? new Date(lead.fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'}) : '';
@@ -295,7 +303,10 @@ function renderLeads() {
         <span class="status-badge ${badgeClass}">${statusLabel}</span>
       </div>
       <div class="lead-details">
-        <div class="detail-item"><div class="detail-label">Salón</div><div class="detail-value">${lead.salon||'—'}</div></div>
+        <div class="detail-item">
+          <div class="detail-label">${isCita ? '📅 Fecha y Hora' : '🏛️ Salón / Lugar'}</div>
+          <div class="detail-value">${lead.salon||'—'}</div>
+        </div>
         <div class="detail-item"><div class="detail-label">WhatsApp</div><div class="detail-value">${lead.whatsapp||'—'}</div></div>
         <div class="detail-item"><div class="detail-label">Iglesia</div><div class="detail-value">${lead.iglesia||'—'}</div></div>
         <div class="detail-item"><div class="detail-label">Canal</div><div class="detail-value">${lead.canal||'web'}</div></div>
