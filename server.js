@@ -6,6 +6,7 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 const { OpenAI } = require('openai');
 require('dotenv').config();
+const calendar = require('./calendar'); // Módulo de Google Calendar
 
 const app = express();
 app.use(cors({
@@ -564,26 +565,32 @@ async function handleMetaMessage(psid, text, platform = 'facebook') {
 // --- MOTOR CREADOR: Activar generación automática vía API v2.0 ---
 // ─── HANDLER: CITA AGENDADA ──────────────────────────────────────────────────
 async function handleCitaAgendada(datosTexto) {
-    // Parser robusto: acepta CON o SIN corchetes
-    function extraer(clave) {
-        // Formato 1: Clave:[valor con corchetes]
-        let m = datosTexto.match(new RegExp(clave + ':\\s*\\[([^\\]]+)\\]'));
-        if (m) return m[1].trim();
-        // Formato 2: Clave:valor|siguiente (sin corchetes, separado por pipe)
-        m = datosTexto.match(new RegExp(clave + ':\\s*([^|\\n\\r\\[]+)'));
-        if (m) return m[1].trim();
+    // Parser ultra-robusto: busca por palabra clave sin importar el formato exacto
+    function extraer(claves) {
+        for (const clave of claves) {
+            const regexes = [
+                new RegExp(clave + ':\\s*\\[([^\\]]+)\\]', 'i'),
+                new RegExp(clave + ':\\s*([^|\\n\\r\\[]+)', 'i')
+            ];
+            for (const re of regexes) {
+                const m = datosTexto.match(re);
+                if (m && m[1].trim()) return m[1].trim();
+            }
+        }
         return '';
     }
 
-    console.log('📅 [CITA] Texto completo recibido:', datosTexto.substring(0, 400));
+    console.log('📅 [CITA] Procesando texto:', datosTexto.substring(0, 500));
 
     const cita = {
-        nombre:   extraer('Nombre'),
-        servicio: extraer('Servicio'),
-        dia:      extraer('Dia'),
-        hora:     extraer('Hora'),
-        whatsapp: extraer('Whatsapp'),
+        nombre:   extraer(['Nombre', 'Cliente']),
+        servicio: extraer(['Servicio', 'Interés', 'Interes']),
+        dia:      extraer(['Dia', 'Día', 'Fecha']),
+        hora:     extraer(['Hora', 'Horario']),
+        whatsapp: extraer(['Whatsapp', 'Teléfono', 'Telefono', 'WA']),
+        canal:    'web-chat'
     };
+    
     console.log('📅 [CITA] Datos extraídos:', JSON.stringify(cita));
 
     // 💾 Guardar en CRM
@@ -596,10 +603,25 @@ async function handleCitaAgendada(datosTexto) {
         status:   'cita'
     });
 
-    // 📅 Generar link de Google Calendar (pre-llenado, un clic para guardar)
-    const title   = encodeURIComponent(`Consulta TodoDigital - ${cita.nombre || 'Cliente'}`);
-    const details = encodeURIComponent(`Cliente: ${cita.nombre}\nServicio: ${cita.servicio}\nWhatsApp: ${cita.whatsapp}`);
-    const calendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=Online+%E2%80%94+TodoDigital+NMR`;
+    // 📅 Intentar agendar en Google Calendar automáticamente
+    let calendarStatus = '⏳ Pendiente (Error de sync)';
+    let calendarLink = '';
+    
+    try {
+        const calResult = await calendar.createEvent(cita);
+        if (calResult && calResult.success) {
+            calendarStatus = '✅ Agendada automáticamente';
+            calendarLink = calResult.link;
+        } else {
+            // Generar link manual como fallback
+            const title   = encodeURIComponent(`Consulta TodoDigital - ${cita.nombre || 'Cliente'}`);
+            const details = encodeURIComponent(`Cliente: ${cita.nombre}\nServicio: ${cita.servicio}\nWhatsApp: ${cita.whatsapp}`);
+            calendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=Online+%E2%80%94+TodoDigital+NMR`;
+            calendarStatus = `❌ Error: ${calResult?.error || 'Permisos insuficientes'}`;
+        }
+    } catch (e) {
+        calendarStatus = `❌ Error inesperado: ${e.message}`;
+    }
 
     // 📲 Notificar por Telegram
     const tgToken = process.env.TELEGRAM_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
@@ -610,16 +632,26 @@ async function handleCitaAgendada(datosTexto) {
         const diaDisplay      = cita.dia      || '—';
         const horaDisplay     = cita.hora     || '—';
         const waDisplay       = cita.whatsapp || '—';
+        
+        const message = `📅 *NUEVA CITA AGENDADA*\n\n` +
+                        `👤 *Cliente:* ${nombreDisplay}\n` +
+                        `💼 *Servicio:* ${servicioDisplay}\n` +
+                        `🗓 *Día:* ${diaDisplay}\n` +
+                        `🕐 *Hora:* ${horaDisplay}\n` +
+                        `📱 *WhatsApp:* ${waDisplay}\n\n` +
+                        `🤖 *Status Calendar:* ${calendarStatus}\n\n` +
+                        `👇 Presiona para ver/agregar:`;
+
         await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 chat_id: chatId,
-                text: `📅 *NUEVA CITA AGENDADA*\n\n👤 *Cliente:* ${nombreDisplay}\n💼 *Servicio:* ${servicioDisplay}\n🗓 *Día:* ${diaDisplay}\n🕐 *Hora:* ${horaDisplay}\n📱 *WhatsApp:* ${waDisplay}\n\n👇 Presiona para agregar al calendario:`,
+                text: message,
                 parse_mode: 'Markdown',
                 reply_markup: {
                     inline_keyboard: [[
-                        { text: '📅 Agregar a Google Calendar', url: calendarLink }
+                        { text: calendarStatus.includes('✅') ? '👁️ Ver en Calendar' : '📅 Agregar Manualmente', url: calendarLink }
                     ]]
                 }
             })
