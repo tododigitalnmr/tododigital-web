@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#07070f;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--accent:#8B5CF6;--accent2:#EC4899;--text:#e2e8f0;--muted:#94a3b8;--green:#10b981;--yellow:#f59e0b;--red:#ef4444}
+:root{--bg:#07070f;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--accent:#8B5CF6;--accent2:#EC4899;--text:#e2e8f0;--muted:#94a3b8;--green:#10b981;--yellow:#f59e0b;--red:#ef4444;--blue:#3b82f6}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(139,92,246,0.15) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(236,72,153,0.1) 0%,transparent 50%);pointer-events:none;z-index:0}
 
@@ -72,6 +72,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .badge-pendiente{background:rgba(245,158,11,0.15);color:var(--yellow);border:1px solid rgba(245,158,11,0.3)}
 .badge-autorizado{background:rgba(16,185,129,0.15);color:var(--green);border:1px solid rgba(16,185,129,0.3)}
 .badge-rechazado{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2)}
+.badge-prospecto{background:rgba(139,92,246,0.12);color:#a78bfa;border:1px solid rgba(139,92,246,0.25)}
+.badge-cita{background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3)}
 
 .lead-details{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
 .detail-item{background:rgba(255,255,255,0.03);border-radius:8px;padding:8px 10px}
@@ -163,6 +165,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="filters">
     <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
     <button class="filter-btn" onclick="setFilter('pendiente',this)">Pendientes</button>
+    <button class="filter-btn" onclick="setFilter('cita',this)">📅 Citas</button>
+    <button class="filter-btn" onclick="setFilter('prospecto',this)">Prospectos</button>
     <button class="filter-btn" onclick="setFilter('autorizado',this)">Autorizados</button>
     <button class="filter-btn" onclick="setFilter('rechazado',this)">Rechazados</button>
   </div>
@@ -267,8 +271,8 @@ function renderLeads() {
     const eventDate = lead.fecha ? new Date(lead.fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'}) : '';
     const wa = (lead.whatsapp||'').replace(/[^0-9]/g,'');
     const invUrl = lead.invitacionUrl || '#';
-    const statusLabel = {pendiente:'Pendiente',autorizado:'Autorizado',rechazado:'Rechazado'}[lead.status]||lead.status;
-    const badgeClass = {pendiente:'badge-pendiente',autorizado:'badge-autorizado',rechazado:'badge-rechazado'}[lead.status]||'badge-pendiente';
+    const statusLabel = {pendiente:'Pendiente',autorizado:'Autorizado',rechazado:'Rechazado',prospecto:'Prospecto',cita:'📅 Cita'}[lead.status]||lead.status;
+    const badgeClass = {pendiente:'badge-pendiente',autorizado:'badge-autorizado',rechazado:'badge-rechazado',prospecto:'badge-prospecto',cita:'badge-cita'}[lead.status]||'badge-pendiente';
 
     return `<div class="lead-card" data-status="${lead.status}" data-id="${lead.id}">
       <div class="lead-header">

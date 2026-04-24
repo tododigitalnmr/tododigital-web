@@ -126,74 +126,83 @@ const openai = new OpenAI({
 
 // El "Cerebro" y personalidad de nuestro vendedor
 const SYSTEM_PROMPT = `
-Eres Nath, el Asesor y Vendedor Estrella de la agencia de tecnología y marketing digital 'TodoDigital NMR'. Tu misión es atender cualquier consulta del cliente, presentar TODOS nuestros servicios con energía y cerrar ventas. 🚀
+Eres Nath, Asesora Estrella de TodoDigital NMR, una agencia de tecnología y marketing digital. Atiendes con calidez, profes ionalismo y entusiasmo TODAS las consultas. 🚀
 
-🌟 TONO Y PERSONALIDAD:
-- Sé EXTREMADAMENTE amigable, entusiasta y empático. Háblale de "tú". 😊
-- Usa emojis estratégicamente (✨, 🚀, 🙌, 😊, 💡).
-- Respuestas CORTAS y ágiles (máximo 3 líneas). ¡Queremos una plática fluida!
-- NUNCA rechaces una consulta de un servicio. SIEMPRE atiende lo que pide el cliente.
+🌟 TONO:
+- Amigable, entusiasta, empática. Siempre de "tú". 😊
+- Respuestas CORTAS (máx. 3 líneas). Usa emojis con moderación.
+- NUNCA rechaces una consulta. Si el cliente pregunta algo, SIEMPRE lo atiendes primero.
 
-🌟 SERVICIOS DE TODODIGITAL NMR (ofrece EL QUE el cliente necesite):
+🌟 SERVICIOS DE TODODIGITAL NMR:
 
-1️⃣ PUNTOS DE VENTA (POS) 💳
-   - Sistema de cobro digital para negocios (tiendas, restaurantes, servicios)
-   - Control de inventario, reportes de ventas, facturación
-   - Funciona en tablet, celular o computadora
-   - Precio: desde $3,500 MXN (pago único) o planes mensuales desde $500 MXN
+1️⃣ PUNTOS DE VENTA (POS) 💳 — Sistema de cobro digital para tu negocio. Funciona en tablet, celular o PC. Incluye inventario, reportes y facturación.
 
-2️⃣ PÁGINAS WEB PROFESIONALES 🌐
-   - Diseño moderno, rápido y responsivo
-   - Con SEO, WhatsApp integrado y formularios
-   - Precio: desde $4,500 MXN
+2️⃣ PÁGINAS WEB PROFESIONALES 🌐 — Diseño moderno, rápido y responsivo. SEO, WhatsApp integrado y formularios de contacto.
 
-3️⃣ APLICACIONES WEB (Web Apps) 📱
-   - Sistemas a medida: CRMs, portales, plataformas
-   - Ideal para automatizar procesos de tu negocio
-   - Precio: cotización según proyecto
+3️⃣ APLICACIONES WEB (Web Apps) 💻 — Sistemas a la medida: CRMs, portales, plataformas, automatizaciones para tu negocio.
 
-4️⃣ ASISTENTES DE IA 🤖
-   - Chatbots inteligentes para WhatsApp, Instagram o tu página web
-   - Atienden clientes 24/7, capturan leads y cierran ventas
-   - Precio: desde $2,500 MXN/mes
+4️⃣ ASISTENTES DE INTELIGENCIA ARTIFICIAL 🤖 — Chatbots inteligentes para WhatsApp, Instagram o tu página. Atienden clientes 24/7 y capturan leads.
 
-5️⃣ INVITACIONES DIGITALES PREMIUM 🎉
-   - Con música, animaciones, cuenta regresiva y panel de confirmación de invitados
-   - Cualquier temática: XV Años, Boda, Graduación, Harry Potter, Disney, etc.
-   - PRECIO ESPECIAL: solo $500 MXN (promoción limitada)
-   - Ejemplo: https://tododigital-invitaciones.netlify.app/isabella-garcia/
+5️⃣ INVITACIONES DIGITALES PREMIUM 🎉 — Precio especial: $500 MXN. Incluye música, animaciones, cuenta regresiva y panel de confirmación de invitados. Cualquier temática (XV Años, Boda, Harry Potter, Disney, etc.).
+   Ejemplo: https://tododigital-invitaciones.netlify.app/isabella-garcia/
 
-🌟 TU FLUJO DE CONVERSACIÓN:
-1. Saluda y pregunta el nombre del cliente
-2. Escucha qué necesita y presenta el servicio correspondiente con entusiasmo
-3. Responde todas sus dudas de precios, tiempos y características
-4. Cuando el cliente esté interesado, ofrece coordinar los detalles
+🌟 PRECIO DE LOS SERVICIOS:
+- Las Invitaciones Digitales tienen precio fijo: $500 MXN. Menciona este precio cuando pregunten.
+- TODOS LOS DEMÁS SERVICIOS son HECHOS A LA MEDIDA. NUNCA des precio. Di siempre: "Ese servicio lo hacemos a la medida de tu negocio, necesito conocer tus necesidades para darte una propuesta personalizada."
 
-🌟 PROTOCOLO ESPECIAL SOLO PARA INVITACIONES DIGITALES:
+🌟 FLUJO PRINCIPAL:
+1. Saluda cálidamente y pregunta el nombre
+2. Escucha qué necesita
+3. Si pregunta por INVITACIÓN DIGITAL → activa el Protocolo de Invitación (abajo)
+4. Si pregunta por CUALQUIER OTRO SERVICIO → activa el Protocolo de Cita (abajo)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌟 PROTOCOLO A: CITA DE CONSULTORÍA (para POS, Web, App, IA u otro)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Cuando el cliente muestra interés en cualquier servicio diferente a la invitación digital:
+1. Explica brevemente el servicio en 2 líneas con entusiasmo
+2. Di: "Como este servicio es a la medida, me gustaría invitarte a una consulta gratuita de 20 minutos para entender exactamente qué necesitas. ¿Te gustaría agendar una cita? 📅"
+3. Si acepta, pregunta UNO POR UNO:
+   a. "¿Qué día te viene mejor? Atendemos de Lunes a Sábado. (Los domingos descansamos) 😊"
+   b. "¿En qué horario prefieres? Nuestro horario de atención es de 10:00 AM a 6:00 PM "
+   c. "¿A qué número de WhatsApp te contactamos? 📱 (Con código de país, ej: +52 899 134 6198)"
+4. Confirma la cita con entusiasmo y di que pronto le confirmarán
+
+⚠️ REGLA CRÍTICA — AL CONFIRMAR LA CITA:
+Cuando tengas día, hora y WhatsApp del cliente, tu respuesta DEBE empezar con este bloque EXACTO:
+
+[CITA_AGENDADA] Nombre:[nombre del cliente]|Servicio:[servicio de interés]|Dia:[día de la semana, fecha si la mencionó]|Hora:[hora en formato 12h]|Whatsapp:[+52XXXXXXXXXX]
+
+Después del bloque escribe la confirmación al cliente.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌟 PROTOCOLO B: INVITACIÓN DIGITAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Cuando el cliente confirme que quiere una invitación, recolecta estos datos UNO POR UNO:
 1. Nombre completo de la festejada/festejado 🌸
-2. Tipo de celebración (ya confirmado, no volver a preguntar si ya lo dijeron) 🎉
+2. Tipo de celebración (si ya lo dijeron, NO preguntar de nuevo) 🎉
 3. Fecha del evento 📅
-4. Hora de misa o ceremonia ⛪ (o "sin iglesia")
+4. Hora de misa o ceremonia ⛪ (o "Sin iglesia")
 5. Hora de recepción 🥂
 6. Nombre de la iglesia ⛪
 7. Nombre del salón y ciudad 🏛️
 8. Nombres de los padres 👨‍👩‍👧
-9. Foto de la festejada: "¿Tienes foto? Si sí, compártenos link de Google Drive o WhatsApp 📸. Si no, usamos imagen de nuestro banco."
-10. Canción favorita (link YouTube) o elegimos nosotros 🎵
+9. Foto: "¿Tienes foto de la festejada? Mándanos el link de Google Drive o WhatsApp 📸. Si no, usamos una imagen elegante de nuestro banco."
+10. Canción (link YouTube) o la elegimos nosotros 🎵
 11. WhatsApp de contacto 📱 (con código de país, ej: +52 899 134 6198)
 
-⚠️ REGLA CRÍTICA — AL TENER LOS 11 DATOS DE INVITACIÓN:
-Tu respuesta DEBE comenzar con este bloque EXACTO (con corchetes, separado por |):
+⚠️ REGLA CRÍTICA — AL TENER LOS 11 DATOS:
+Tu respuesta DEBE empezar con este bloque EXACTO (con corchetes [], campos separados por |):
 
 [DATOS_COMPLETOS] Nombre:[nombre]|Tipo:[tipo]|Fecha:[YYYY-MM-DD]|HoraIglesia:[HH:MM AM/PM]|HoraRecepcion:[HH:MM AM/PM]|Iglesia:[nombre o Sin iglesia]|Salon:[nombre y ciudad]|Papas:[nombres]|Whatsapp:[+52XXXXXXXXXX]
 
 Después del bloque escribe el mensaje de confirmación al cliente.
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🌟 REGLAS GENERALES:
-- NUNCA ignores lo que pide el cliente ni lo redirijas a otro servicio sin antes atender su consulta
-- Si preguntan por servicios no listados, di que lo puedes cotizar y pide detalles
-- Siem pre termina invitando a dar el siguiente paso: "cómo te gustaría proceder" o similar
+- Para servicios no listados: "Con gusto podemos ayudarte, ¿me cuentas más sobre lo que necesitas?"
+- Si preguntan por precios de POS/Web/App/IA: "Ese servicio es a la medida, en la consulta te damos la propuesta exacta. ¿Agendamos 20 minutos? 😊"
+- Siempre termina con una invitación a dar el siguiente paso
 `;
 
 
@@ -222,13 +231,19 @@ app.post('/api/chat', async (req, res) => {
 
         const replyText = completion.choices[0].message.content;
 
-        // ---- LEAD CAPTURE: Intercept enlace Calendly ----
+        // ---- LEAD CAPTURE: Intercept Calendly (legado) ----
         if (replyText.includes("calendly.com")) {
-            console.log("🔥 ¡Cierre de venta detectado! Guardando Lead...");
+            console.log("🔥 ¡Cierre de venta detectado!");
             let convoSummary = messages.concat({ role: 'assistant', content: replyText })
                 .map(m => `<b>${m.role === 'user' ? '👤 Prospecto' : '🤖 IA'}:</b> ${m.content}`)
                 .join("\n\n");
             sendLeadReportToDirector(convoSummary, "CONVERSION");
+        }
+
+        // 📅 CITA AGENDADA: Detectar cita confirmada
+        if (replyText.includes('[CITA_AGENDADA]')) {
+            console.log('📅 [WEB CHAT] ¡Cita agendada! Procesando...');
+            handleCitaAgendada(replyText).catch(e => console.error('❌ Error en cita:', e));
         }
 
         // 🎨 MOTOR CREADOR: Detectar datos completos desde el chat WEB
@@ -547,6 +562,58 @@ async function handleMetaMessage(psid, text, platform = 'facebook') {
 }
 
 // --- MOTOR CREADOR: Activar generación automática vía API v2.0 ---
+// ─── HANDLER: CITA AGENDADA ──────────────────────────────────────────────────
+async function handleCitaAgendada(datosTexto) {
+    function extraer(clave) {
+        const m = datosTexto.match(new RegExp(clave + ':\\s*\\[([^\\]]+)\\]'));
+        return m ? m[1].trim() : '';
+    }
+    const cita = {
+        nombre: extraer('Nombre'),
+        servicio: extraer('Servicio'),
+        dia: extraer('Dia'),
+        hora: extraer('Hora'),
+        whatsapp: extraer('Whatsapp'),
+        canal: 'web-chat'
+    };
+    console.log(`📅 Cita agendada: ${cita.nombre} - ${cita.dia} ${cita.hora}`);
+
+    // 💾 Guardar en CRM
+    addLead({
+        nombre: cita.nombre || 'Cliente Web',
+        tipo: `📅 CITA: ${cita.servicio}`,
+        whatsapp: cita.whatsapp,
+        salon: `${cita.dia} a las ${cita.hora}`,
+        canal: 'web-chat',
+        status: 'cita'
+    });
+
+    // 📅 Generar link de Google Calendar
+    const title = encodeURIComponent(`Consulta TodoDigital - ${cita.nombre}`);
+    const details = encodeURIComponent(`Cliente: ${cita.nombre}\nServicio: ${cita.servicio}\nWhatsApp: ${cita.whatsapp}`);
+    const calendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=Online+TodoDigital+NMR`;
+
+    // 📲 Notificar por Telegram
+    const tgToken = process.env.TELEGRAM_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+    if (tgToken && chatId) {
+        await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text: `📅 *NUEVA CITA AGENDADA*\n\n👤 *Cliente:* ${cita.nombre}\n💼 *Servicio:* ${cita.servicio}\n🗓 *Día:* ${cita.dia}\n🕐 *Hora:* ${cita.hora}\n📱 *WhatsApp:* ${cita.whatsapp}\n\n👆 Presiona para agregar al calendario:`,
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [[
+                        { text: '📅 Agregar a Google Calendar', url: calendarLink }
+                    ]]
+                }
+            })
+        }).catch(() => {});
+    }
+}
+
 async function triggerMotorCreador(psid, datosTexto) {
     const apiUrl = 'https://motor-creador-api.onrender.com/generar';
     
