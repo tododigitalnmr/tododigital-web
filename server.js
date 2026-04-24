@@ -57,7 +57,7 @@ Eres Nath, el Asesor y Vendedor Estrella de la agencia tecnológica 'TodoDigital
 3. EL EMBUDO PASO A PASO: Una vez que sepas su nombre, pregunta por su evento y menciona la promoción de $500 MXN de inmediato para cerrar el interés.
 
 🌟 PROTOCOLO DE RECOLECCIÓN DE DATOS (cuando el cliente quiere su invitación):
-Cuando el cliente confirme que quiere la invitación, debes recolectar estos datos UNO POR UNO con mucho entusiasmo:
+Cuando el cliente confirme que quiere la invitación, debes recolectar estos datos UNO POR UNO con mucho entusiasmo. NO pidas dos datos a la vez:
 1. "¿Cuál es el nombre completo de la festejada/festejado? 🌸"
 2. "¿Qué tipo de celebración es? (XV Años, Boda, Graduación, Cumpleaños, otra) 🎉"
 3. "¿Cuál es la fecha del evento? (día, mes y año) 📅"
@@ -66,11 +66,16 @@ Cuando el cliente confirme que quiere la invitación, debes recolectar estos dat
 6. "¿Cuál es el nombre de la iglesia o lugar de ceremonia? ⛪"
 7. "¿Cuál es el nombre del salón o lugar de festejo? 🏛️"
 8. "¿Quiénes son los padres del/la festejado/a? (para poner en la invitación) 👨‍👩‍👧"
-9. "¿Tienen ya una foto especial del/la festejado/a para el fondo de la invitación? 📸 Si sí, ¡mándamela por aquí!"
-10. "¿Ya tienen una canción favorita para la invitación? 🎵 Si sí, compárteme el link de YouTube."
+9. "¿Tienen ya una foto especial del/la festejado/a para el fondo de la invitación? 📸 Si sí, ¡mándamela por aquí! Si no, con gusto usamos una foto elegante de nuestro banco de imágenes."
+10. "¿Ya tienen una canción favorita para la invitación? 🎵 Si sí, compárteme el link de YouTube. Si no, nosotros elegimos una hermosa para el estilo de su evento."
+11. "Por último, ¿a qué número de WhatsApp te puedo mandar el link de la invitación terminada? 📱 (Con código de país, ej: +52 811 234 5678)"
 
-Cuando hayas recopilado TODOS los datos, di EXACTAMENTE esta frase para indicar que el formulario está completo:
-"[DATOS_COMPLETOS] Nombre:[NOMBRE], Tipo:[TIPO], Fecha:[FECHA_ISO], HoraIglesia:[HORA], HoraRecepcion:[HORA2], Iglesia:[IGLESIA], Salon:[SALON], Papas:[PAPAS]"
+⚠️ REGLA CRÍTICA - EMISIÓN DEL MARCADOR:
+Cuando hayas recopilado los 11 datos anteriores, en tu SIGUIENTE respuesta debes incluir OBLIGATORIAMENTE al inicio este bloque exacto (sin modificarlo, sin parafrasearlo):
+
+[DATOS_COMPLETOS] Nombre:[nombre completo], Tipo:[tipo de evento], Fecha:[YYYY-MM-DD], HoraIglesia:[hora en formato 12h], HoraRecepcion:[hora en formato 12h], Iglesia:[nombre iglesia o "Sin iglesia"], Salon:[nombre salon y ciudad], Papas:[nombres papas], Whatsapp:[numero whatsapp con codigo pais]
+
+Después del bloque puedes agregar un mensaje cálido de confirmación al cliente. Pero el bloque [DATOS_COMPLETOS] SIEMPRE va primero y completo. NUNCA digas "te contactaré pronto" sin antes emitir ese bloque.
 
 🌟 REGLAS DE NEGOCIO:
 - Servicios: Páginas Web, Web Apps, Asistentes de IA (como yo), e Invitaciones Digitales con Dashboard.
@@ -421,6 +426,7 @@ async function triggerMotorCreador(psid, datosTexto) {
         papas: extraer('Papas'),
         horaIglesia: extraer('HoraIglesia'),
         horaRecepcion: extraer('HoraRecepcion'),
+        whatsapp: extraer('Whatsapp'),
         slug: (extraer('Nombre') || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')
     };
 
@@ -443,18 +449,22 @@ async function triggerMotorCreador(psid, datosTexto) {
 
             if (tgToken && chatId) {
                 const telegramUrl = `https://api.telegram.org/bot${tgToken}/sendMessage`;
+                const whatsappLine = payload.whatsapp ? `\n*WhatsApp:* ${payload.whatsapp}` : '';
                 await fetch(telegramUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         chat_id: chatId,
-                        text: `🎨 *MOTOR CREADOR: Invitación Lista*\n\n*Cliente:* ${payload.nombre}\n*URL:* ${result.url}\n\n¿Deseas autorizar el envío oficial al cliente?`,
+                        text: `🎨 *MOTOR CREADOR: Invitación Lista*\n\n*Cliente:* ${payload.nombre}\n*Evento:* ${payload.tipo}\n*Salón:* ${payload.salon}${whatsappLine}\n\n🔗 *Ver Invitación:*\n${result.url}\n\n_¿Autorizas el envío al cliente?_`,
                         parse_mode: 'Markdown',
                         reply_markup: {
                             inline_keyboard: [
                                 [
                                     { text: "✅ Autorizar y Enviar", callback_data: `auth_send_${payload.slug}` },
                                     { text: "❌ Rechazar", callback_data: `reject_${payload.slug}` }
+                                ],
+                                [
+                                    { text: "👁️ Abrir Invitación", url: result.url }
                                 ]
                             ]
                         }
