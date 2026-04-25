@@ -211,8 +211,8 @@ app.post('/api/chat', async (req, res) => {
         // 📅 CITA AGENDADA: Detectar cita confirmada
         if (replyText.includes('[CITA_AGENDADA]')) {
             console.log('📅 [WEB CHAT] ¡Cita agendada! Procesando...');
-            const psid = req.body.psid || 'web-user';
-            handleCitaAgendada(replyText, psid).catch(e => console.error('❌ Error en cita:', e));
+            const finalPsid = psid || 'web-user';
+            handleCitaAgendada(replyText, finalPsid).catch(e => console.error('❌ Error en cita:', e));
         }
 
         // 🎨 MOTOR CREADOR: Detectar datos completos desde el chat WEB
