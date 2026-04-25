@@ -40,6 +40,13 @@ function loadLeads() {
 function saveLeads(leads) {
     try { fs.writeFileSync(LEADS_FILE, JSON.stringify(leads, null, 2)); } catch(e) { console.error('Error saving leads:', e.message); }
 }
+// --- OPTIMIZACIÓN RENDER FREE: Caché de mensajes para evitar duplicados por latencia ---
+const processedMids = new Set();
+setInterval(() => processedMids.clear(), 1000 * 60 * 10); // Limpiar cada 10 min
+
+// Endpoint para servicios de Keep-Alive (Ping)
+app.get('/api/health', (req, res) => res.status(200).send('OK'));
+
 function addLead(data) {
     const leads = loadLeads();
     // Priorizamos el status que venga en data (ej: 'cita' o 'prospecto')
@@ -400,10 +407,18 @@ app.post('/webhook', async (req, res) => {
             // 1. Manejo de MENSAJES DIRECTOS (Messenger/IG DM)
             if (entry.messaging) {
                 const webhook_event = entry.messaging[0];
-                const sender_psid = webhook_event.sender.id;
-
                 if (webhook_event.message && webhook_event.message.text) {
+                    const mid = webhook_event.message.mid;
+                    if (mid) {
+                        if (processedMids.has(mid)) {
+                            console.log(`🚫 Mensaje duplicado ignorado: ${mid}`);
+                            continue;
+                        }
+                        processedMids.add(mid);
+                    }
+
                     const messageText = webhook_event.message.text;
+                    const sender_psid = webhook_event.sender.id;
                     console.log(`📩 Mensaje DM de ${sender_psid}: ${messageText}`);
                     await handleMetaMessage(sender_psid, messageText);
                 }
