@@ -5,6 +5,8 @@ const cors = require('cors');
 const path = require('path');
 const nodemailer = require('nodemailer');
 const { OpenAI } = require('openai');
+const conversationHistory = {};
+const reportedSessions = new Set(); // Para evitar duplicados en la misma sesión
 require('dotenv').config();
 const calendar = require('./calendar'); // Módulo de Google Calendar
 
@@ -442,7 +444,6 @@ app.post('/webhook', async (req, res) => {
 });
 
 // --- MEMORIA TEMPORAL PARA META ---
-const conversationHistory = {};
 
 // Función específica para responder a COMENTARIOS
 async function handleMetaComment(commentId, text, platform) {
@@ -538,7 +539,6 @@ async function handleMetaMessage(psid, text, platform = 'facebook') {
 
 // --- MOTOR CREADOR: Activar generación automática vía API v2.0 ---
 // ─── HANDLER: CITA AGENDADA ──────────────────────────────────────────────────
-const reportedSessions = new Set(); // Para evitar duplicados en la misma sesión
 
 async function handleCitaAgendada(datosTexto, psid = null) {
     if (psid) reportedSessions.add(psid);
