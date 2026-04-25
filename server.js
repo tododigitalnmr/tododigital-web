@@ -134,72 +134,78 @@ const openai = new OpenAI({
 
 // El "Cerebro" y personalidad de nuestro vendedor
 const SYSTEM_PROMPT = `
-Eres Nath, la asistente IA súper entusiasta y amable de TodoDigital NMR. 🚀✨
-Tu misión es que cada persona que nos contacte se sienta inspirada y bien atendida. 
+Eres Nath, la asistente IA de TodoDigital NMR. 🚀✨
+Tu lema: "En TodoDigital, las ideas las convertimos en realidades digitales".
+
+🌟 TU SALUDO PREMIUM (Obligatorio en el primer contacto):
+"¡Hola! Muy buenos días/tardes/noches (según la hora). 😊 ¡Gracias por contactarnos! En TodoDigital, las ideas las convertimos en realidades digitales. ✨ 
+
+Actualmente tenemos una promoción especial en nuestras **Invitaciones Digitales Premium** por solo $500 MXN. Además, somos expertos desarrollando:
+💻 Páginas Web y Apps Móviles
+💳 Tarjetas de Presentación y Lealtad Digitales
+🛒 Sistemas de Punto de Venta (POS) para tu negocio
+...y mucho más a la medida. 
+
+¿Con quién tengo el gusto de platicar hoy? ¿Cuál es tu nombre? 😊 ¿Y en qué podemos ayudarte a brillar hoy?"
 
 🌟 PERSONALIDAD:
-- Sé extremadamente cálida, creativa y usa muchos emojis para dar vida a tus mensajes.
-- Llama al cliente por su nombre con cariño: "¡Hola de nuevo, [Nombre]! 😊".
-- Muestra emoción genuina: "¡Qué increíble elección!", "¡Me encanta esa temática!", "¡Tu evento va a ser el mejor del año! 🎉".
-- No seas seca ni directa. Sé una guía creativa y servicial.
-
-🏢 NUESTROS SERVICIOS:
-- Invitaciones Digitales Premium ($500 MXN): Cualquier temática, música, confirmación, etc.
-- Software a la medida: Puntos de Venta (POS), Páginas Web, Apps e IA para negocios.
+- Cálida, creativa y amable.
+- CONTEXTO CRÍTICO: Si el cliente ya mencionó un dato, ¡NO LO PREGUNTES DE NUEVO! Úsalo para personalizar la charla.
+- Si el cliente te da varios datos juntos, agradécelos todos y sigue con lo que falta.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🌟 PROTOCOLO A: AGENDAR CITA (Web/App/IA/POS)
-Para estos servicios, NUNCA des precio. Di que son "a la medida" e invita a una consulta gratuita. Atendemos Lunes a Sábado (10am-6pm).
-Al confirmar, genera este bloque al inicio:
+Para servicios a la medida, invita a una consulta gratuita.
 [CITA_AGENDADA] Nombre:[nombre]|Servicio:[servicio]|Dia:[dia]|Hora:[hora]|Whatsapp:[+52...]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🌟 PROTOCOLO B: INVITACIÓN DIGITAL ($500 MXN)
-Recolecta estos 11 datos con emoción, uno por uno o en grupos:
-1. Nombre festejado | 2. Tipo evento | 3. Fecha | 4. Hora Misa | 5. Hora Recepción | 6. Iglesia | 7. Salón/Ciudad | 8. Padres | 9. Foto (link Drive/WA) | 10. Canción (link YouTube) | 11. WhatsApp.
-
-⚠️ REGLA CRÍTICA DE CIERRE:
-Cuando tengas los 11 datos, tu respuesta DEBE EMPEZAR con este bloque EXACTO para que el equipo de diseño reciba el pedido:
-
+Recolecta los 11 datos (Nombre festejado, Tipo evento, Fecha, Hora Misa/Rec, Iglesia, Salon/Ciudad, Padres, Foto, Canción, WhatsApp).
+🔴 REGLA DE CIERRE:
+Cuando tengas todo, EMPIEZA con:
 [DATOS_COMPLETOS] Nombre:[nombre]|Tipo:[tipo]|Fecha:[YYYY-MM-DD]|HoraIglesia:[HH:MM]|HoraRecepcion:[HH:MM]|Iglesia:[nombre]|Salon:[nombre y ciudad]|Papas:[nombres]|Whatsapp:[+52...]
-
-Después del bloque, despídete con mucha alegría y confirma que el pedido ya está en proceso. ✨
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `;
 
-
-
 app.post('/api/chat', async (req, res) => {
     try {
-        const { messages } = req.body;
+        const { messages, psid } = req.body;
         
         if (!messages || !Array.isArray(messages)) {
             return res.status(400).json({ error: "Formato de mensajes inválido" });
         }
 
-        // Inyectar nuestra directiva maestra antes de la conversación del usuario
+        // Detectar hora actual para que Nath salude correctamente
+        const horaActual = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', hour12: false, timeZone: 'America/Mexico_City' });
+        let momentoDia = "buenos días";
+        if (horaActual >= 12 && horaActual < 19) momentoDia = "buenas tardes";
+        if (horaActual >= 19 || horaActual < 6) momentoDia = "buenas noches";
+
         const apiMessages = [
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: `${SYSTEM_PROMPT}\n\nNota: Actualmente es de ${momentoDia}.` },
             ...messages
         ];
 
-        // Llamada oficial a OpenAI
         const completion = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: apiMessages,
             temperature: 0.7,
-            max_tokens: 350
+            max_tokens: 400
         });
 
         const replyText = completion.choices[0].message.content;
 
-        // ---- LEAD CAPTURE: Intercept Calendly (legado) ----
-        if (replyText.includes("calendly.com")) {
-            console.log("🔥 ¡Cierre de venta detectado!");
-            let convoSummary = messages.concat({ role: 'assistant', content: replyText })
-                .map(m => `<b>${m.role === 'user' ? '👤 Prospecto' : '🤖 IA'}:</b> ${m.content}`)
-                .join("\n\n");
-            sendLeadReportToDirector(convoSummary, "CONVERSION");
+        // --- REPORTE AUTOMÁTICO DE PROSPECTO (Si Nath se despide o termina flujo) ---
+        const esDespedida = /que tengas un (gran|excelente) día|hasta luego|estoy aquí para ayudarte/i.test(replyText);
+        if (esDespedida && psid && !reportedSessions.has(psid)) {
+            console.log(`📝 Registrando prospecto automático para ${psid}`);
+            // Reportar al CRM como prospecto preventivo
+            addLead({
+                nombre: messages.find(m => m.role === 'assistant' && m.content.includes('¿Cuál es tu nombre?'))?.content || 'Interesado',
+                tipo: 'Interés en servicios',
+                canal: 'web/messenger',
+                status: 'prospecto'
+            });
         }
 
         // 📅 CITA AGENDADA: Detectar cita confirmada
