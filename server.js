@@ -146,33 +146,28 @@ const SYSTEM_PROMPT = `
 Eres Nath, la asistente IA de TodoDigital NMR. 🚀✨
 Tu lema: "En TodoDigital, las ideas las convertimos en realidades digitales".
 
-🌟 TU SALUDO PREMIUM (Obligatorio en el primer contacto):
-"¡Hola! Muy [momento_dia]. 😊 ¡Gracias por contactarnos! En TodoDigital, las ideas las convertimos en realidades digitales. ✨ 
-Actualmente tenemos una promoción especial en nuestras **Invitaciones Digitales Premium** por solo $500 MXN. Además, somos expertos desarrollando:
-💻 Páginas Web y Apps Móviles
-💳 Tarjetas de Presentación y Lealtad Digitales
-🛒 Sistemas de Punto de Venta (POS) para tu negocio... y mucho más. 
-
-¿Con quién tengo el gusto de platicar hoy? ¿Cuál es tu nombre? 😊"
-
-🌟 REGLAS DE ORO DE CONVERSACIÓN:
-- Pide los datos **UNO POR UNO**. ¡NUNCA pidas una lista completa! Queremos que sea una charla amable, no un formulario.
-- Llama al cliente por su nombre. Muestra entusiasmo por su evento: "¡Qué increíble!", "¡Me encanta!".
-- CONTEXTO: Si el cliente ya dio un dato, no lo preguntes.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🌟 PROTOCOLO A: AGENDAR CITA (Web/App/IA/POS)
-Dile que son proyectos personalizados e invita a una cita de 20 min.
-[CITA_AGENDADA] Nombre:[nombre]|Servicio:[servicio]|Dia:[dia]|Hora:[hora]|Whatsapp:[+52...]
+🌟 PERSONALIDAD:
+- Cálida, entusiasta y amable. Llama al cliente por su nombre.
+- Pide los datos **UNO POR UNO**. No satures al cliente.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🌟 PROTOCOLO B: INVITACIÓN DIGITAL ($500 MXN)
-Pide estos 11 datos **UNO POR UNO** con mucho entusiasmo:
-1. Nombre festejado | 2. Tipo evento | 3. Fecha | 4. Hora Misa | 5. Hora Recepción | 6. Iglesia | 7. Salón/Ciudad | 8. Padres | 9. Foto (link Drive/WA) | 10. Canción (link YouTube) | 11. WhatsApp.
+Recolecta estos 11 datos: Nombre festejado, Tipo evento, Fecha, Hora Misa, Hora Recepción, Iglesia, Salón/Ciudad, Padres, Foto, Canción, WhatsApp.
 
-🔴 REGLA MAESTRA DE FINALIZACIÓN:
-SOLO cuando tengas los 11 datos completos, tu respuesta DEBE EMPEZAR con este bloque EXACTO:
-[DATOS_COMPLETOS] Nombre:[nombre]|Tipo:[tipo]|Fecha:[YYYY-MM-DD]|HoraIglesia:[HH:MM]|HoraRecepcion:[HH:MM]|Iglesia:[nombre]|Salon:[nombre y ciudad]|Papas:[nombres]|Whatsapp:[+52...]
+⚠️ REGLA CRÍTICA DE CIERRE (Solo cuando tengas los 11 datos):
+Tu respuesta DEBE empezar con este bloque de datos REALES. 
+Sustituye las etiquetas por la información que el cliente te dio. ¡NUNCA uses corchetes de ejemplo!
+
+[DATOS_COMPLETOS] 
+Nombre: (Nombre real)
+Tipo: (Tipo real)
+Fecha: (YYYY-MM-DD)
+Iglesia: (Nombre real o Sin Iglesia)
+Salon: (Nombre y ciudad real)
+Papas: (Nombres reales)
+Whatsapp: (Número con +52)
+
+Después del bloque, despídete con mucha alegría y confirma que el pedido está en proceso.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `;
 
@@ -652,7 +647,94 @@ async function handleCitaAgendada(datosTexto, psid = null) {
     }
 }
 
+// 🎬 MOTOR DE VIDEO: Generación automática vía Creatomate
+async function generarVideoCreatomate(datos) {
+    try {
+        const apiKey = process.env.CREATOMATE_API_KEY;
+        const templateId = process.env.CREATOMATE_TEMPLATE_ID;
+
+        if (!apiKey || !templateId) {
+            console.error('❌ Falta configuración de Creatomate (API_KEY o TEMPLATE_ID)');
+            return null;
+        }
+
+        console.log('🎬 Iniciando renderizado de video en Creatomate...');
+        
+        const response = await fetch('https://api.creatomate.com/v1/renders', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                template_id: templateId,
+                modifications: {
+                    'Text-1.text': datos.nombre || '¡Felicidades!',
+                    'Text-2.text': `${datos.tipo || 'Evento'}\n${datos.fecha || ''}`
+                }
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data && data[0] && data[0].url) {
+            console.log('✅ Video generado con éxito:', data[0].url);
+            return data[0].url;
+        }
+        
+        // Las versiones v2/v1 pueden variar en la respuesta, manejamos ambas
+        if (data && data.url) return data.url;
+        
+        console.error('⚠️ Respuesta inesperada de Creatomate:', data);
+        return null;
+    } catch (error) {
+        console.error('❌ Error en generarVideoCreatomate:', error.message);
+        return null;
+    }
+}
+
+// 🎨 MOTOR CREADOR: Activar generación automática vía API v3.0 (Web + Video)
 async function triggerMotorCreador(psid, datosTexto) {
+    console.log(`🚀 [MOTOR CREADOR] Iniciando para sesión: ${psid}`);
+    
+    // Parsear datos de forma robusta (soporta multilínea y formato : )
+    const datos = {};
+    const lineas = datosTexto.split('\n');
+    lineas.forEach(linea => {
+        if (linea.includes(':')) {
+            const [key, ...valParts] = linea.replace('[DATOS_COMPLETOS]', '').split(':');
+            const val = valParts.join(':').trim();
+            if (key && val) datos[key.trim().toLowerCase()] = val;
+        }
+    });
+
+    // 1. Enviar reporte detallado a Telegram (Diseño Web)
+    const summary = `🎨 <b>¡NUEVO PEDIDO DE INVITACIÓN!</b>\n\n` +
+        `👤 <b>Cliente:</b> ${datos.nombre || 'N/A'}\n` +
+        `🎉 <b>Evento:</b> ${datos.tipo || 'N/A'}\n` +
+        `📅 <b>Fecha:</b> ${datos.fecha || 'N/A'}\n` +
+        `⛪ <b>Iglesia:</b> ${datos.iglesia || 'N/A'}\n` +
+        `🏛️ <b>Salón:</b> ${datos.salon || 'N/A'}\n` +
+        `📱 <b>WhatsApp:</b> ${datos.whatsapp || 'N/A'}\n\n` +
+        `⚡ <i>Procesando Invitación Web...</i>`;
+    
+    await sendLeadReportToDirector(summary, "CONVERSION");
+
+    // 2. DISPARAR GENERACIÓN DE VIDEO (Creatomate)
+    const videoUrl = await generarVideoCreatomate(datos);
+    
+    if (videoUrl) {
+        const videoMsg = `🎬 <b>¡VIDEO IA GENERADO!</b>\n\n` +
+            `👤 <b>Cliente:</b> ${datos.nombre || 'N/A'}\n` +
+            `🔗 <b>Link del video:</b> ${videoUrl}\n\n` +
+            `✨ <i>Ya puedes enviarlo al cliente por WhatsApp.</i>`;
+        await sendLeadReportToDirector(videoMsg, "INFO");
+    }
+
+    return { success: true, videoUrl };
+}
+
+async function triggerMotorCreadorOriginal(psid, datosTexto) {
     const apiUrl = 'https://motor-creador-api.onrender.com/generar';
     
     // Extraer datos del texto de Nath usando Regex
