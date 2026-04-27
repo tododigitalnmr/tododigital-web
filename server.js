@@ -8,6 +8,14 @@ const { OpenAI } = require('openai');
 const conversationHistory = {};
 const reportedSessions = new Set(); // Para evitar duplicados en la misma sesión
 require('dotenv').config();
+
+// --- FALLBACKS DE EMERGENCIA PARA RENDER ---
+process.env.TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN || '8775970767:AAFRqLQ1pWLjtIgEnpbotB7NM2mOh3PVo_8';
+process.env.TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_TOKEN;
+process.env.TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '8350432897';
+process.env.CREATOMATE_API_KEY = process.env.CREATOMATE_API_KEY || 'baab9e05360b411981e0cc28f83ed8aac411f7c720ba06c38809cbcf466734d0529fb7994476ae24b5273cf83fb2722e';
+process.env.CREATOMATE_TEMPLATE_ID = process.env.CREATOMATE_TEMPLATE_ID || '06430e40-111b-43a7-a055-b4f5a521f91b';
+
 const calendar = require('./calendar'); // Módulo de Google Calendar
 
 const app = express();
