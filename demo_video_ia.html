@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TodoDigital | Video AI Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #d4af37;
+            --dark: #0a0a0a;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: var(--dark);
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+            background-size: 40px 40px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            color: var(--primary);
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.7;
+            font-weight: 300;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Video Frame Simulation */
+        .video-container {
+            position: relative;
+            width: 320px;
+            height: 568px; /* 16:9 vertical scale */
+            background: #000;
+            border-radius: 40px;
+            box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.8), 
+                        0 0 40px rgba(212, 175, 55, 0.15);
+            overflow: hidden;
+            border: 8px solid #1a1a1a;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .video-container:hover {
+            transform: scale(1.02);
+        }
+
+        .video-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #111 0%, #000 100%);
+        }
+
+        /* Overlay Pattern */
+        .video-content::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        /* Elements inside Video */
+        .v-top { 
+            font-size: 0.7rem; 
+            letter-spacing: 5px; 
+            color: var(--primary); 
+            margin-bottom: 2rem; 
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .v-title { 
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+            color: white;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .v-date { font-size: 1.1rem; font-weight: 400; margin-bottom: 0.5rem; letter-spacing: 1px;}
+        .v-location { font-size: 0.7rem; opacity: 0.6; font-weight: 400; text-transform: uppercase; letter-spacing: 2px; }
+
+        .v-decoration {
+            width: 60px;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--primary), transparent);
+            margin: 2.5rem 0;
+            position: relative;
+        }
+        .v-decoration::before {
+            content: '♦';
+            position: absolute;
+            top: -7px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--primary);
+            font-size: 0.8rem;
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 2.5rem;
+            background: var(--glass);
+            padding: 15px;
+            border-radius: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.08);
+            max-width: 500px;
+        }
+
+        button {
+            background: rgba(212, 175, 55, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: var(--primary);
+            padding: 12px 18px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: var(--primary);
+            color: black;
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.25);
+        }
+
+        /* Animations */
+        .animate-content {
+            animation: slideUpIn 1s cubic-bezier(0.23, 1, 0.32, 1) both;
+        }
+
+        @keyframes slideUpIn {
+            0% { opacity: 0; transform: translateY(40px) scale(0.9); filter: blur(10px); }
+            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 6px;
+            background: linear-gradient(to right, var(--primary), #fff);
+            width: 0%;
+            transition: width 0.1s linear;
+            z-index: 10;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(212, 175, 55, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: black;
+            font-size: 0.6rem;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Video Engine Demo</h1>
+        <p>Visualización de la automatización Creatomate + TodoDigital NMR</p>
+    </div>
+
+    <div class="video-container">
+        <div id="loader" class="loading-overlay">
+            <div class="spinner"></div>
+            <p style="margin-top: 20px; font-size: 0.7rem; letter-spacing: 3px; font-weight: 600; color: var(--primary);">GENERANDO MP4...</p>
+        </div>
+
+        <div class="video-content" id="video-box">
+            <div class="badge">PREMIUM AI</div>
+            <div id="v-content-wrap" class="animate-content">
+                <div class="v-top" id="d-label">EVENTO ESPECIAL</div>
+                <div class="v-decoration"></div>
+                <div class="v-title" id="d-name">Isabella G.</div>
+                <div class="v-date" id="d-date">Sábado 15 de Mayo</div>
+                <div class="v-location" id="d-place">Salón Bellagio | 20:00 HRS</div>
+                <div class="v-decoration" style="margin-top: 3rem;"></div>
+            </div>
+        </div>
+
+        <div class="progress-bar" id="p-bar"></div>
+    </div>
+
+    <div class="controls">
+        <button onclick="renderTemplate('Mis XV Isabella', 'MIS XV AÑOS', '15 de Mayo', 'Salón Bellagio, CDMX')">XV Años</button>
+        <button onclick="renderTemplate('Ana & Luis', 'NUESTRA BODA', '12 de Octubre', 'Jardín Las Flores, MTY')">Boda</button>
+        <button onclick="renderTemplate('El Viaje de Mateo', 'MI BAUTIZO', '05 de Junio', 'Parroquia San Miguel')">Bautizo</button>
+        <button onclick="renderTemplate('Pool Party', 'MI CUMPLE #5', '22 de Julio', 'Club Campestre')">Infantil</button>
+    </div>
+
+    <script>
+        function renderTemplate(name, label, date, place) {
+            const loader = document.getElementById('loader');
+            const pBar = document.getElementById('p-bar');
+            const wrap = document.getElementById('v-content-wrap');
+            
+            // Simular inicio de renderizado API
+            loader.style.display = 'flex';
+            pBar.style.width = '0%';
+            wrap.style.opacity = '0';
+            
+            let progress = 0;
+            const duration = 1500; // 1.5 segundos de render simulado
+            const step = 20;
+            const increment = (step / duration) * 100;
+
+            const interval = setInterval(() => {
+                progress += increment;
+                pBar.style.width = Math.min(progress, 100) + '%';
+                
+                if(progress >= 100) {
+                    clearInterval(interval);
+                    
+                    // Aplicar cambios de datos
+                    document.getElementById('d-name').innerText = name;
+                    document.getElementById('d-label').innerText = label;
+                    document.getElementById('d-date').innerText = date;
+                    document.getElementById('d-place').innerText = place;
+
+                    // Trigger animación de entrada
+                    loader.style.display = 'none';
+                    wrap.style.opacity = '1';
+                    wrap.classList.remove('animate-content');
+                    void wrap.offsetWidth; 
+                    wrap.classList.add('animate-content');
+                }
+            }, step);
+        }
+    </script>
+</body>
+</html>
