@@ -716,117 +716,85 @@ async function triggerMotorCreador(psid, datosTexto) {
         }
     });
 
-    // 1. Enviar reporte detallado a Telegram (Diseño Web)
-    const summary = `🎨 <b>¡NUEVO PEDIDO DE INVITACIÓN!</b>\n\n` +
-        `👤 <b>Cliente:</b> ${datos.nombre || 'N/A'}\n` +
-        `🎉 <b>Evento:</b> ${datos.tipo || 'N/A'}\n` +
-        `📅 <b>Fecha:</b> ${datos.fecha || 'N/A'}\n` +
-        `⛪ <b>Iglesia:</b> ${datos.iglesia || 'N/A'}\n` +
-        `🏛️ <b>Salón:</b> ${datos.salon || 'N/A'}\n` +
-        `📱 <b>WhatsApp:</b> ${datos.whatsapp || 'N/A'}\n\n` +
-        `⚡ <i>Procesando Invitación Web...</i>`;
-    
-    await sendLeadReportToDirector(summary, "CONVERSION");
-
-    // 2. DISPARAR GENERACIÓN DE VIDEO (Creatomate)
-    const videoUrl = await generarVideoCreatomate(datos);
-    
-    if (videoUrl) {
-        const videoMsg = `🎬 <b>¡VIDEO IA GENERADO!</b>\n\n` +
-            `👤 <b>Cliente:</b> ${datos.nombre || 'N/A'}\n` +
-            `🔗 <b>Link del video:</b> ${videoUrl}\n\n` +
-            `✨ <i>Ya puedes enviarlo al cliente por WhatsApp.</i>`;
-        await sendLeadReportToDirector(videoMsg, "INFO");
-    }
-
-    return { success: true, videoUrl };
-}
-
-async function triggerMotorCreadorOriginal(psid, datosTexto) {
-    const apiUrl = 'https://motor-creador-api.onrender.com/generar';
-    
-    // Extraer datos del texto de Nath usando Regex
-    function extraer(clave) {
-        // Acepta formato: Clave:[valor] o Clave: [valor] (con/sin espacio)
-        const m = datosTexto.match(new RegExp(clave + ':\\s*\\[([^\\]]+)\\]'));
-        return m ? m[1].trim() : '';
-    }
-
     const payload = {
-        nombre: extraer('Nombre'),
-        tipo: extraer('Tipo'),
-        fecha: extraer('Fecha'),
-        iglesia: extraer('Iglesia'),
-        salon: extraer('Salon'),
-        papas: extraer('Papas'),
-        horaIglesia: extraer('HoraIglesia'),
-        horaRecepcion: extraer('HoraRecepcion'),
-        whatsapp: extraer('Whatsapp'),
-        slug: (extraer('Nombre') || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')
+        nombre: datos.nombre || '',
+        tipo: datos.tipo || '',
+        fecha: datos.fecha || '',
+        iglesia: datos.iglesia || '',
+        salon: datos.salon || '',
+        papas: datos.papas || '',
+        horaIglesia: datos.horaiglesia || '',
+        horaRecepcion: datos.horarecepcion || '',
+        whatsapp: datos.whatsapp || '',
+        slug: (datos.nombre || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')
     };
 
-    console.log(`🚀 Enviando datos a Motor Creador API para: ${payload.nombre}`);
-
+    console.log(`🚀 Enviando datos a Motor Creador API (Web) para: ${payload.nombre}`);
+    
+    let webUrl = '';
     try {
-        const response = await fetch(apiUrl, {
+        const response = await fetch('https://motor-creador-api.onrender.com/generar', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
         const result = await response.json();
-        
         if (result.success) {
-            console.log(`✅ Invitación generada automáticamente: ${result.url}`);
+            webUrl = result.url;
+            console.log(`✅ Invitación web generada: ${webUrl}`);
             
             // 💾 Guardar lead en el CRM
             addLead({
-                nombre: payload.nombre,
-                tipo: payload.tipo,
-                fecha: payload.fecha,
-                iglesia: payload.iglesia,
-                salon: payload.salon,
-                papas: payload.papas,
-                horaIglesia: payload.horaIglesia,
-                horaRecepcion: payload.horaRecepcion,
-                whatsapp: payload.whatsapp,
-                slug: payload.slug,
-                invitacionUrl: result.url,
+                ...payload,
+                invitacionUrl: webUrl,
                 canal: psid.startsWith('web-chat') ? 'web-chat' : 'facebook'
             });
             console.log(`📊 Lead guardado en CRM: ${payload.nombre}`);
-            // Notificar por Telegram con Botones (HITL)
-            const tgToken = process.env.TELEGRAM_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
-            const chatId = process.env.TELEGRAM_CHAT_ID;
-
-            if (tgToken && chatId) {
-                const telegramUrl = `https://api.telegram.org/bot${tgToken}/sendMessage`;
-                const whatsappLine = payload.whatsapp ? `\n*WhatsApp:* ${payload.whatsapp}` : '';
-                await fetch(telegramUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: chatId,
-                        text: `🎨 *MOTOR CREADOR: Invitación Lista*\n\n*Cliente:* ${payload.nombre}\n*Evento:* ${payload.tipo}\n*Salón:* ${payload.salon}${whatsappLine}\n\n🔗 *Ver Invitación:*\n${result.url}\n\n_¿Autorizas el envío al cliente?_`,
-                        parse_mode: 'Markdown',
-                        reply_markup: {
-                            inline_keyboard: [
-                                [
-                                    { text: "✅ Autorizar y Enviar", callback_data: `auth_send_${payload.slug}` },
-                                    { text: "❌ Rechazar", callback_data: `reject_${payload.slug}` }
-                                ],
-                                [
-                                    { text: "👁️ Abrir Invitación", url: result.url }
-                                ]
-                            ]
-                        }
-                    })
-                });
-            }
-        } else {
-            throw new Error(result.error || 'Fallo desconocido en la API');
         }
     } catch (e) {
-        console.error('❌ Error fatal en Motor Creador:', e.message);
+        console.error('❌ Error en API Web:', e.message);
+    }
+
+    // DISPARAR GENERACIÓN DE VIDEO (Creatomate)
+    const videoUrl = await generarVideoCreatomate(datos);
+    
+    // Notificar por Telegram con Botones (HITL)
+    const tgToken = process.env.TELEGRAM_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+
+    if (tgToken && chatId && (webUrl || videoUrl)) {
+        const telegramUrl = `https://api.telegram.org/bot${tgToken}/sendMessage`;
+        const whatsappLine = payload.whatsapp ? `\n*WhatsApp:* ${payload.whatsapp}` : '';
+        
+        let text = `🎨 *NUEVO PEDIDO COMPLETADO*\n\n*Cliente:* ${payload.nombre}\n*Evento:* ${payload.tipo}\n*Salón:* ${payload.salon}${whatsappLine}\n\n`;
+        if (webUrl) text += `🌐 *Invitación Web:*\n${webUrl}\n\n`;
+        if (videoUrl) text += `🎬 *Video IA (Creatomate):*\n${videoUrl}\n\n`;
+        text += `_¿Autorizas el envío al cliente?_`;
+
+        const buttons = [];
+        if (webUrl) {
+            buttons.push([
+                { text: "✅ Autorizar (Web)", callback_data: `auth_send_${payload.slug}` },
+                { text: "❌ Rechazar", callback_data: `reject_${payload.slug}` }
+            ]);
+            buttons.push([{ text: "👁️ Abrir Web", url: webUrl }]);
+        }
+        if (videoUrl) {
+            buttons.push([{ text: "🎬 Ver Video IA", url: videoUrl }]);
+        }
+
+        await fetch(telegramUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text: text,
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: buttons
+                }
+            })
+        });
     }
 }
 
